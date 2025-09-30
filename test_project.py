@@ -13,7 +13,7 @@ def test_fetch_weather_data():
     """
     Test the fetch_weather_data function
 
- Start with basic tests and make them more
+    Start with basic tests and make them more
     sophisticated as we implement the actual functions.
     """
     # Test with valid coordinates
