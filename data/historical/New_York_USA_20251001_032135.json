@@ -1,0 +1,16 @@
+{
+  "location": "New York, USA",
+  "saved_at": "2025-10-01T03:21:35.957568",
+  "weather": {
+    "temperature": 19.6,
+    "pressure": 1017.6,
+    "humidity": 71.7,
+    "wind_speed": 3.8,
+    "wind_direction": 20.9,
+    "cloud_cover": 21.1,
+    "symbol_code": "fair_night",
+    "precipitation_mm": 0.0,
+    "precipitation_probability": 0,
+    "timestamp": "2025-10-01T01:00:00Z"
+  }
+}
