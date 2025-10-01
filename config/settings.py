@@ -6,7 +6,6 @@ including location data and application preferences.
 """
 
 import json
-import os
 
 
 def load_config():

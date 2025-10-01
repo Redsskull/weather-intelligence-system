@@ -8,7 +8,7 @@ This file must be named 'project.py' per CS50 requirements.
 import requests
 import json
 
-# Import our custom modules
+# Import custom modules
 from utils.translations import translate_code
 from utils.errors import display_error_help
 from utils.persistence import save_weather_data
