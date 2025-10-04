@@ -5,8 +5,14 @@ This file must be named 'test_project.py' per CS50 requirements.
 All functions in project.py must and will be tested here using pytest.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pytest
 from project import fetch_weather_data, parse_current_weather, analyze_patterns
+
+
 
 
 def test_fetch_weather_data():

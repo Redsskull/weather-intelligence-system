@@ -1,0 +1,16 @@
+{
+  "location": "Berlin, Deutschland",
+  "saved_at": "2025-10-05T01:23:32.872143",
+  "weather": {
+    "temperature": 9.5,
+    "pressure": 1000,
+    "humidity": 71.7,
+    "wind_speed": 6.3,
+    "wind_direction": 231.7,
+    "cloud_cover": 100,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "cloudy",
+    "timestamp": "2025-10-04T23:00:00Z"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "location": "Springfield, Lane County, Oregon, United States",
+  "saved_at": "2025-10-05T01:23:47.536205",
+  "weather": {
+    "temperature": 17.7,
+    "pressure": 1018.2,
+    "humidity": 66.5,
+    "wind_speed": 1.1,
+    "wind_direction": 333.8,
+    "cloud_cover": 93.7,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "cloudy",
+    "timestamp": "2025-10-04T23:00:00Z"
+  }
+}

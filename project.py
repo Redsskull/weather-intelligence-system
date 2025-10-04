@@ -5,7 +5,6 @@ Main application file for weather data analysis and pattern recognition.
 This file must be named 'project.py' per CS50 requirements.
 """
 
-import requests
 import json
 import subprocess
 import os
@@ -14,8 +13,7 @@ import os
 from utils.translations import translate_code
 from utils.errors import display_error_help
 from utils.persistence import save_weather_data
-from config.settings import load_config, get_location_coordinates, select_location
-
+from utils.geocoding import geocode_city, suggest_similar_cities
 
 def main():
     """
@@ -25,27 +23,54 @@ def main():
     print("Weather Intelligence System v1.0")
     print("=" * 40)
 
-    # Load configuration
-    config = load_config()
+    # Ask user for any city name with retry
+    while True:
+        print("🌍 Enter any city name (e.g., 'Paris', 'Tokyo', 'New York'):")
+        user_input = input("City: ").strip()
 
-    # Ask user to select location
-    print("Choose a location for weather data:")
-    selected_location = select_location(config)
+        if user_input:
+            break
+        else:
+            print("❌ Please enter a city name")
 
-    if selected_location is None:
-        print("❌ No location selected, exiting")
+    # Get multiple suggestions (not just first result)
+    suggestions = suggest_similar_cities(user_input, limit=5)
+
+    if not suggestions:
+        print("❌ Could not find that city, exiting")
         return
 
-    location_name = selected_location
-    latitude, longitude = get_location_coordinates(location_name, config)
+    if len(suggestions) == 1:
+        # Only one option, use it
+        location_data = suggestions[0]
+    else:
+        # Multiple options, let user choose
+        print(f"\n💡 Found multiple locations for '{user_input}':")
+        for i, suggestion in enumerate(suggestions, 1):
+            country = suggestion.get('country', 'Unknown')
+            print(f"  {i}. {suggestion['display_name']} ({country})")
 
-    if latitude is None or longitude is None:
-        print("❌ Could not get coordinates for location")
-        return
+        try:
+            choice = input(f"\nSelect 1-{len(suggestions)} (or Enter for #{1}): ").strip()
+            if choice and choice.isdigit():
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(suggestions):
+                    location_data = suggestions[choice_idx]
+                else:
+                    location_data = suggestions[0]  # Default to first
+            else:
+                location_data = suggestions[0]  # Default to first
+        except (ValueError, KeyboardInterrupt):
+            location_data = suggestions[0]  # Default to first
+
+    location_name = location_data['display_name']
+    latitude = location_data['lat']
+    longitude = location_data['lon']
+
 
     print(f"Fetching weather data for {location_name}...")
 
-    # Step 1: Use Go data engine to fetch weather data (much faster!)
+    # Step 1: Use Go data engine to fetch weather data
     locations = [{'name': location_name, 'lat': latitude, 'lon': longitude}]
     weather_data_list = fetch_weather_data(locations)
 
@@ -60,9 +85,8 @@ def main():
         print("❌ Failed to parse weather data")
         return
 
-    # Step 2.5: Save weather data if enabled
-    settings = config.get('settings', {})
-    if settings.get('save_historical_data', True):
+    # Save weather data if enabled
+    if True:  # Always save historical data
         save_weather_data(current_weather, location_name)
 
     # Step 3: Display current weather

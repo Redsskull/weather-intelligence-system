@@ -1,0 +1,16 @@
+{
+  "location": "Who are You, Rue Boissy d'Anglas, Quartier de la Madeleine, Paris 8e Arrondissement, Paris, France m\u00e9tropolitaine, 75008, France",
+  "saved_at": "2025-10-05T01:05:44.642989",
+  "weather": {
+    "temperature": 10.4,
+    "pressure": 1015,
+    "humidity": 78.9,
+    "wind_speed": 5.3,
+    "wind_direction": 255.9,
+    "cloud_cover": 21.1,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "fair_night",
+    "timestamp": "2025-10-04T23:00:00Z"
+  }
+}
