@@ -4,18 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+
+	"weather-collector/config"
 )
 
 // FetchWeatherForLocation makes an HTTP request to met.no API for a single location
 func FetchWeatherForLocation(loc Location) WeatherResult {
-	// Build the API URL (same as Python version)
-	url := fmt.Sprintf("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=%.4f&lon=%.4f",
-		loc.Lat, loc.Lon)
+	// Get configuration
+	cfg := config.Get()
 
-	// Create HTTP client with timeout
+	// Build the API URL using config
+	url := fmt.Sprintf("%s?lat=%.4f&lon=%.4f", cfg.API.BaseURL, loc.Lat, loc.Lon)
+
+	// Create HTTP client with configured timeout
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: cfg.API.Timeout,
 	}
 
 	// Create request with proper User-Agent (met.no requirement)
@@ -28,8 +31,8 @@ func FetchWeatherForLocation(loc Location) WeatherResult {
 		}
 	}
 
-	// Set User-Agent header (required by met.no)
-	req.Header.Set("User-Agent", "WeatherIntelligenceSystem-Go/1.0 (Educational Project)")
+	// Set User-Agent header from config (required by met.no)
+	req.Header.Set("User-Agent", cfg.API.UserAgent)
 
 	// Make the HTTP request
 	resp, err := client.Do(req)
