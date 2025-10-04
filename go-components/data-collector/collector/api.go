@@ -73,13 +73,33 @@ func FetchWeatherForLocation(loc Location) WeatherResult {
 	firstEntry := apiResp.Properties.Timeseries[0]
 	details := firstEntry.Data.Instant.Details
 
+	// Extract precipitation data from next_1_hours forecast
+	precipitationMm := 0.0
+	precipitationProb := 0.0
+	symbolCode := ""
+
+	if firstEntry.Data.Next1Hours.Details.PrecipitationAmount > 0 {
+		precipitationMm = firstEntry.Data.Next1Hours.Details.PrecipitationAmount
+	}
+	if firstEntry.Data.Next1Hours.Details.ProbabilityOfPrecipitation > 0 {
+		precipitationProb = firstEntry.Data.Next1Hours.Details.ProbabilityOfPrecipitation
+	}
+	if firstEntry.Data.Next1Hours.Summary.SymbolCode != "" {
+		symbolCode = firstEntry.Data.Next1Hours.Summary.SymbolCode
+	}
+
 	return WeatherResult{
-		Location:    loc,
-		Temperature: details.AirTemperature,
-		Pressure:    details.AirPressureAtSeaLevel,
-		Humidity:    details.RelativeHumidity,
-		WindSpeed:   details.WindSpeed,
-		Success:     true,
-		Timestamp:   firstEntry.Time,
+		Location:                 loc,
+		Temperature:              details.AirTemperature,
+		Pressure:                 details.AirPressureAtSeaLevel,
+		Humidity:                 details.RelativeHumidity,
+		WindSpeed:                details.WindSpeed,
+		WindDirection:            details.WindFromDirection,
+		CloudCover:               details.CloudAreaFraction,
+		PrecipitationMm:          precipitationMm,
+		PrecipitationProbability: precipitationProb,
+		SymbolCode:               symbolCode,
+		Success:                  true,
+		Timestamp:                firstEntry.Time,
 	}
 }

@@ -9,14 +9,19 @@ type Location struct {
 
 // WeatherResult represents the collected weather data for a location
 type WeatherResult struct {
-	Location    Location `json:"location"`
-	Temperature float64  `json:"temperature"`
-	Pressure    float64  `json:"pressure"`
-	Humidity    float64  `json:"humidity"`
-	WindSpeed   float64  `json:"wind_speed"`
-	Success     bool     `json:"success"`
-	Error       string   `json:"error,omitempty"`
-	Timestamp   string   `json:"timestamp"`
+	Location                 Location `json:"location"`
+	Temperature              float64  `json:"temperature"`
+	Pressure                 float64  `json:"pressure"`
+	Humidity                 float64  `json:"humidity"`
+	WindSpeed                float64  `json:"wind_speed"`
+	WindDirection            float64  `json:"wind_direction"`
+	CloudCover               float64  `json:"cloud_cover"`
+	PrecipitationMm          float64  `json:"precipitation_mm"`
+	PrecipitationProbability float64  `json:"precipitation_probability"`
+	SymbolCode               string   `json:"symbol_code"`
+	Success                  bool     `json:"success"`
+	Error                    string   `json:"error,omitempty"`
+	Timestamp                string   `json:"timestamp"`
 }
 
 // APIResponse represents the met.no API response structure
@@ -35,8 +40,19 @@ type APIResponse struct {
 						AirPressureAtSeaLevel float64 `json:"air_pressure_at_sea_level"`
 						RelativeHumidity      float64 `json:"relative_humidity"`
 						WindSpeed             float64 `json:"wind_speed"`
+						WindFromDirection     float64 `json:"wind_from_direction"`
+						CloudAreaFraction     float64 `json:"cloud_area_fraction"`
 					} `json:"details"`
 				} `json:"instant"`
+				Next1Hours struct {
+					Summary struct {
+						SymbolCode string `json:"symbol_code"`
+					} `json:"summary"`
+					Details struct {
+						PrecipitationAmount        float64 `json:"precipitation_amount"`
+						ProbabilityOfPrecipitation float64 `json:"probability_of_precipitation"`
+					} `json:"details"`
+				} `json:"next_1_hours"`
 			} `json:"data"`
 		} `json:"timeseries"`
 	} `json:"properties"`

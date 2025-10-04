@@ -4,7 +4,7 @@ import "log"
 
 // CollectWeatherData orchestrates weather collection for multiple locations
 // For now, this is a simple sequential implementation
-// Later we'll make it concurrent with goroutines
+// Later I'll make it concurrent with goroutines
 func CollectWeatherData(locations []Location) []WeatherResult {
 	log.Printf("Starting weather collection for %d locations...", len(locations))
 

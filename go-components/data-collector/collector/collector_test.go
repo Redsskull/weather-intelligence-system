@@ -30,14 +30,29 @@ func TestWeatherResultCreation(t *testing.T) {
 	loc := Location{Name: "London", Lat: 51.5, Lon: -0.1}
 
 	result := WeatherResult{
-		Location:    loc,
-		Temperature: 20.5,
-		Success:     true,
-		Timestamp:   "2025-10-03T01:00:00Z",
+		Location:                 loc,
+		Temperature:              20.5,
+		PrecipitationMm:          1.2,
+		PrecipitationProbability: 75.0,
+		SymbolCode:               "lightrain",
+		Success:                  true,
+		Timestamp:                "2025-10-03T01:00:00Z",
 	}
 
 	if result.Temperature != 20.5 {
 		t.Errorf("Expected temperature 20.5, got %f", result.Temperature)
+	}
+
+	if result.PrecipitationMm != 1.2 {
+		t.Errorf("Expected precipitation 1.2mm, got %f", result.PrecipitationMm)
+	}
+
+	if result.PrecipitationProbability != 75.0 {
+		t.Errorf("Expected precipitation probability 75%%, got %f", result.PrecipitationProbability)
+	}
+
+	if result.SymbolCode != "lightrain" {
+		t.Errorf("Expected symbol code 'lightrain', got '%s'", result.SymbolCode)
 	}
 
 	if !result.Success {
@@ -68,7 +83,9 @@ func TestFetchWeatherForLocation(t *testing.T) {
 
 	// If the API call succeeded, check the data makes sense
 	if result.Success {
-		t.Logf("✅ API call successful: %.1f°C, %.1fhPa", result.Temperature, result.Pressure)
+		t.Logf("✅ API call successful: %.1f°C, %.1fhPa, %.1fmm rain (%.0f%% chance), %s",
+			result.Temperature, result.Pressure, result.PrecipitationMm,
+			result.PrecipitationProbability, result.SymbolCode)
 
 		// Basic sanity checks for weather data
 		if result.Temperature < -50 || result.Temperature > 60 {
@@ -79,9 +96,20 @@ func TestFetchWeatherForLocation(t *testing.T) {
 			t.Errorf("Pressure seems unrealistic: %.1f hPa", result.Pressure)
 		}
 
+		if result.PrecipitationMm < 0 || result.PrecipitationMm > 100 {
+			t.Errorf("Precipitation seems unrealistic: %.1f mm", result.PrecipitationMm)
+		}
+
+		if result.PrecipitationProbability < 0 || result.PrecipitationProbability > 100 {
+			t.Errorf("Precipitation probability seems unrealistic: %.1f%%", result.PrecipitationProbability)
+		}
+
 		if result.Timestamp == "" {
 			t.Error("Timestamp should not be empty")
 		}
+
+		// Symbol code should be present (even if empty string is valid)
+		t.Logf("Weather symbol: '%s'", result.SymbolCode)
 	} else {
 		t.Logf("⚠️  API call failed (this might be OK): %s", result.Error)
 		// Don't fail the test if API is down - just log it
@@ -111,7 +139,10 @@ func TestCollectWeatherData(t *testing.T) {
 		}
 
 		t.Logf("Location %d (%s): Success=%v", i+1, result.Location.Name, result.Success)
-		if !result.Success {
+		if result.Success {
+			t.Logf("  Weather: %.1f°C, %.1fmm rain, %s",
+				result.Temperature, result.PrecipitationMm, result.SymbolCode)
+		} else {
 			t.Logf("  Error: %s", result.Error)
 		}
 	}
