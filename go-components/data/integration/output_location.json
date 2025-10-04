@@ -1,0 +1,78 @@
+{
+  "request_id": "req_20251004_042530_001",
+  "response_timestamp": "2025-10-04T04:25:45Z",
+  "processing_time_ms": 2341,
+  "service_version": "1.0",
+  "status": "completed",
+  "summary": {
+    "total_locations": 3,
+    "successful": 2,
+    "failed": 1,
+    "success_rate": 66.7
+  },
+  "weather_data": [
+    {
+      "location": {
+        "name": "London, UK",
+        "lat": 51.5074,
+        "lon": -0.1278
+      },
+      "timestamp": "2025-10-04T04:25:42Z",
+      "success": true,
+      "weather": {
+        "temperature": 14.8,
+        "pressure": 996.9,
+        "humidity": 78.2,
+        "wind_speed": 4.1,
+        "wind_direction": 245.0,
+        "cloud_cover": 85.0,
+        "precipitation_mm": 0.0,
+        "precipitation_probability": 15.0,
+        "symbol_code": "cloudy",
+        "conditions": "☁️ Cloudy"
+      }
+    },
+    {
+      "location": {
+        "name": "New York, USA",
+        "lat": 40.7128,
+        "lon": -74.006
+      },
+      "timestamp": "2025-10-04T04:25:43Z",
+      "success": true,
+      "weather": {
+        "temperature": 18.2,
+        "pressure": 1015.3,
+        "humidity": 65.1,
+        "wind_speed": 2.8,
+        "wind_direction": 180.0,
+        "cloud_cover": 45.0,
+        "precipitation_mm": 1.2,
+        "precipitation_probability": 75.0,
+        "symbol_code": "lightrain",
+        "conditions": "🌦️ Light rain"
+      }
+    },
+    {
+      "location": {
+        "name": "Tokyo, Japan",
+        "lat": 35.6762,
+        "lon": 139.6503
+      },
+      "timestamp": "2025-10-04T04:25:44Z",
+      "success": false,
+      "error": "API returned status 429: Rate limit exceeded",
+      "retry_suggested": true
+    }
+  ],
+  "metadata": {
+    "api_calls_made": 3,
+    "api_response_times_ms": [245, 189, 156],
+    "rate_limit_hits": 1,
+    "configuration_used": {
+      "api_timeout": "30s",
+      "max_workers": 5,
+      "rate_limit": 8
+    }
+  }
+}

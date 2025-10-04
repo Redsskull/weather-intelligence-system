@@ -7,6 +7,8 @@ This file must be named 'project.py' per CS50 requirements.
 
 import requests
 import json
+import subprocess
+import os
 
 # Import custom modules
 from utils.translations import translate_code
@@ -17,7 +19,7 @@ from config.settings import load_config, get_location_coordinates, select_locati
 
 def main():
     """
-    Main function
+    Main function - orchestrates the weather intelligence system using Go data engine
     This is the entry point of the entire application.
     """
     print("Weather Intelligence System v1.0")
@@ -43,15 +45,16 @@ def main():
 
     print(f"Fetching weather data for {location_name}...")
 
-    # Step 1: Fetch weather data
-    weather_data = fetch_weather_data(latitude, longitude)
+    # Step 1: Use Go data engine to fetch weather data (much faster!)
+    locations = [{'name': location_name, 'lat': latitude, 'lon': longitude}]
+    weather_data_list = fetch_weather_data(locations)
 
-    if weather_data is None:
+    if weather_data_list is None or len(weather_data_list) == 0:
         print("❌ Failed to fetch weather data")
         return
 
-    # Step 2: Parse the current weather
-    current_weather = parse_current_weather(weather_data)
+    # Step 2: Parse the weather data from Go collector
+    current_weather = parse_current_weather(weather_data_list[0])
 
     if current_weather is None:
         print("❌ Failed to parse weather data")
@@ -72,7 +75,7 @@ def main():
     print(f"Precipitation: {current_weather.get('precipitation_mm', 0)} mm (next hour)")
     print(f"Rain Chance: {current_weather.get('precipitation_probability', 0)}%")
 
-    # Step 4: Analyze patterns
+    # Step 4: Analyze patterns (Python's specialty - intelligence layer)
     pattern_analysis = analyze_patterns([current_weather])
 
     print("\n📊 Weather Analysis:")
@@ -93,115 +96,67 @@ def main():
     print(f"📈 Trend: {pattern_analysis.get('trend', 'unknown').replace('_', ' ').title()}")
 
 
-def fetch_weather_data(lat, lon):
+def fetch_weather_data(locations):
     """
-    Fetch weather data from met.no API
+    Fetch weather data using Go data collector (high-performance engine)
 
     Args:
-        lat (float): Latitude coordinate (-90 to 90)
-        lon (float): Longitude coordinate (-180 to 180)
+        locations (list): List of location dictionaries with 'name', 'lat', 'lon'
 
     Returns:
-        dict: Weather data JSON response or None if failed
+        list: List of weather data dictionaries or None if failed
     """
-    # Step 1: Build the API URL
-    base_url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
-    params = {
-        "lat": lat,
-        "lon": lon,
-    }
+    # Delegate to Go data collector for fast, concurrent data collection
+    success = call_go_collector(locations)
 
-    # Step 2: Set up headers (REQUIRED by met.no Terms of Service)
-    headers = {"User-Agent": "WeatherIntelligenceSystem/1.0 (CS50 Educational Project)"}
-
-    # Step 3: Make the HTTP request with error handling
-    try:
-        print(f"🌍 Requesting weather data for coordinates ({lat}, {lon})...")
-
-        response = requests.get(base_url, params=params, headers=headers, timeout=10)
-
-        if response.status_code == 200:
-            print("✅ Successfully received weather data")
-            weather_data = response.json()
-            return weather_data
-        else:
-            display_error_help('api_error', f"Status code: {response.status_code}")
-            return None
-
-    except requests.exceptions.Timeout:
-        display_error_help('api_timeout')
+    if not success:
+        display_error_help('go_collector_failed', 'Go data collector failed to execute')
         return None
 
-    except requests.exceptions.ConnectionError:
-        display_error_help('network_error')
+    # Load the results from Go collector
+    weather_data = load_go_collected_data()
+
+    if weather_data is None:
+        display_error_help('go_data_load_failed', 'Failed to load Go collector results')
         return None
 
-    except requests.exceptions.RequestException as e:
-        display_error_help('api_error', str(e))
-        return None
-
-    except json.JSONDecodeError:
-        display_error_help('data_parsing_error', 'Invalid JSON response')
-        return None
+    print(f"✅ Successfully collected weather data for {len(weather_data)} locations via Go engine")
+    return weather_data
 
 
-def parse_current_weather(data):
+def parse_current_weather(go_weather_result):
     """
-    Parse current weather from API response
+    Parse current weather from Go collector result
 
     Args:
-        data (dict): Raw weather data from API
+        go_weather_result (dict): Weather data from Go collector
 
     Returns:
         dict: Structured weather information or None if failed
     """
     try:
-        # Navigate to the current weather data
-        timeseries = data['properties']['timeseries']
-        current_data = timeseries[0]['data']['instant']['details']
+        # Check if Go collection was successful
+        if not go_weather_result.get('success', False):
+            error_msg = go_weather_result.get('error', 'Unknown error')
+            display_error_help('go_collection_error', f"Go collector error: {error_msg}")
+            return None
 
-        # Extract current measurements
+        # Extract weather data (Go already parsed the API response!)
         weather = {
-            'temperature': current_data.get('air_temperature'),
-            'pressure': current_data.get('air_pressure_at_sea_level'),
-            'humidity': current_data.get('relative_humidity'),
-            'wind_speed': current_data.get('wind_speed'),
-            'wind_direction': current_data.get('wind_from_direction'),
-            'cloud_cover': current_data.get('cloud_area_fraction')
+            'temperature': go_weather_result.get('temperature'),
+            'pressure': go_weather_result.get('pressure'),
+            'humidity': go_weather_result.get('humidity'),
+            'wind_speed': go_weather_result.get('wind_speed'),
+            'wind_direction': go_weather_result.get('wind_direction'),
+            'cloud_cover': go_weather_result.get('cloud_cover'),
+            'precipitation_mm': go_weather_result.get('precipitation_mm', 0),
+            'precipitation_probability': go_weather_result.get('precipitation_probability', 0),
+            'symbol_code': go_weather_result.get('symbol_code', 'unknown'),
+            'timestamp': go_weather_result.get('timestamp')
         }
 
-        # Extract forecast data (precipitation and conditions)
-        forecast_data = timeseries[0]['data']
-
-        # Get weather symbol
-        symbol_code = 'unknown'
-        if 'next_1_hours' in forecast_data and 'summary' in forecast_data['next_1_hours']:
-            symbol_code = forecast_data['next_1_hours']['summary'].get('symbol_code', 'unknown')
-
-        weather['symbol_code'] = symbol_code
-
-        # Get precipitation data
-        if 'next_1_hours' in forecast_data and 'details' in forecast_data['next_1_hours']:
-            precip_details = forecast_data['next_1_hours']['details']
-            weather['precipitation_mm'] = precip_details.get('precipitation_amount', 0)
-            weather['precipitation_probability'] = precip_details.get('probability_of_precipitation', 0)
-        else:
-            weather['precipitation_mm'] = 0
-            weather['precipitation_probability'] = 0
-
-        # Get timestamp
-        weather['timestamp'] = timeseries[0]['time']
-
-        print("✅ Successfully parsed weather data")
+        print("✅ Successfully parsed Go collector weather data")
         return weather
-
-    except KeyError as e:
-        display_error_help('missing_data_field', f"Field: {e}")
-        return None
-
-    except IndexError as e:
-        display_error_help('incomplete_data_structure', f"Index error: {e}")
-        return None
 
     except Exception as e:
         display_error_help('data_parsing_error', str(e))
@@ -286,6 +241,155 @@ def analyze_patterns(data):
         analysis["summary"] = f"Detected {len(conditions)} notable conditions: {', '.join(conditions)}"
 
     return analysis
+
+def call_go_collector(locations):
+    """
+    Execute Go data collector subprocess
+
+    Args:
+        locations (list): List of location dictionaries with 'name', 'lat', 'lon'
+
+    Returns:
+        bool: True if Go collector executed successfully, False otherwise
+
+    Example:
+        locations = [
+            {'name': 'London, UK', 'lat': 51.5074, 'lon': -0.1278},
+            {'name': 'Paris, France', 'lat': 48.8566, 'lon': 2.3522}
+        ]
+        success = call_go_collector(locations)
+    """
+    # Step 1: Create integration directory if it doesn't exist
+    integration_dir = "data/integration"
+    os.makedirs(integration_dir, exist_ok=True)
+
+    # Step 2: Write locations to input file for Go to read
+    input_file = os.path.join(integration_dir, "input_locations.json")
+
+    try:
+        # Convert Python location format to Go format
+        go_locations = []
+        for loc in locations:
+            go_location = {
+                "name": loc.get("name", "Unknown"),
+                "lat": float(loc.get("lat", 0)),
+                "lon": float(loc.get("lon", 0))
+            }
+            go_locations.append(go_location)
+
+        # Write to JSON file
+        with open(input_file, 'w') as f:
+            json.dump(go_locations, f, indent=2)
+
+        print(f"📝 Wrote {len(go_locations)} locations to {input_file}")
+
+    except Exception as e:
+        display_error_help('file_write_error', f"Could not write locations: {e}")
+        return False
+
+    # Step 3: Execute Go data collector
+    try:
+        print("🚀 Launching Go data collector...")
+
+        # Change to Go directory and run
+        go_dir = "go-components/data-collector"
+        result = subprocess.run(
+            ["go", "run", "main.go"],
+            cwd=go_dir,
+            capture_output=True,
+            text=True,
+            timeout=30  # 30 second timeout
+        )
+
+        if result.returncode == 0:
+            print("✅ Go data collector completed successfully")
+            print("📊 Go collector output:")
+            # Print the Go program's output (it has nice logging)
+            if result.stdout.strip():
+                for line in result.stdout.strip().split('\n'):
+                    print(f"   {line}")
+            return True
+        else:
+            print("❌ Go data collector failed")
+            print(f"Exit code: {result.returncode}")
+            if result.stderr:
+                print(f"Error: {result.stderr}")
+            return False
+
+    except subprocess.TimeoutExpired:
+        display_error_help('subprocess_timeout', "Go collector took too long")
+        return False
+    except FileNotFoundError:
+        display_error_help('go_not_found', "Go not installed or not in PATH")
+        return False
+    except Exception as e:
+        display_error_help('subprocess_error', str(e))
+        return False
+
+
+def load_go_collected_data():
+    """
+    Read data from Go collector output
+
+    Returns:
+        list: List of weather data dictionaries, or None if failed
+
+    Example return format:
+        [
+            {
+                "location": {"name": "London, UK", "lat": 51.5074, "lon": -0.1278},
+                "temperature": 15.2,
+                "pressure": 1013.25,
+                "humidity": 65.0,
+                "wind_speed": 4.5,
+                "success": true,
+                "timestamp": "2025-09-26T15:00:00Z"
+            }
+        ]
+    """
+
+    # Step 1: Check if output file exists
+    output_file = "data/integration/output_weather.json"
+
+    if not os.path.exists(output_file):
+        display_error_help('file_not_found', f"Go output file not found: {output_file}")
+        return None
+
+    # Step 2: Read and parse the JSON file
+    try:
+        with open(output_file, 'r') as f:
+            weather_data = json.load(f)
+
+        print(f"📊 Loaded weather data for {len(weather_data)} locations from Go collector")
+
+        # Step 3: Convert Go format to Python-friendly format (optional processing)
+        processed_data = []
+        for item in weather_data:
+            processed_item = {
+                'location': item.get('location', {}),
+                'temperature': item.get('temperature'),
+                'pressure': item.get('pressure'),
+                'humidity': item.get('humidity'),
+                'wind_speed': item.get('wind_speed'),
+                'wind_direction': item.get('wind_direction'),
+                'cloud_cover': item.get('cloud_cover'),
+                'precipitation_mm': item.get('precipitation_mm', 0),
+                'precipitation_probability': item.get('precipitation_probability', 0),
+                'symbol_code': item.get('symbol_code', 'unknown'),
+                'success': item.get('success', False),
+                'error': item.get('error', ''),
+                'timestamp': item.get('timestamp')
+            }
+            processed_data.append(processed_item)
+
+        return processed_data
+
+    except json.JSONDecodeError as e:
+        display_error_help('json_parsing_error', f"Invalid JSON in output file: {e}")
+        return None
+    except Exception as e:
+        display_error_help('file_read_error', f"Could not read output file: {e}")
+        return None
 
 
 if __name__ == "__main__":

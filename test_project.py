@@ -11,36 +11,46 @@ from project import fetch_weather_data, parse_current_weather, analyze_patterns
 
 def test_fetch_weather_data():
     """
-    Test the fetch_weather_data function
+    Test the fetch_weather_data function (now Go-powered)
     """
-    # Test with valid coordinates (London)
-    result = fetch_weather_data(51.5074, -0.1278)
+    # Test with valid location data (London)
+    locations = [{'name': 'London, UK', 'lat': 51.5074, 'lon': -0.1278}]
+    result = fetch_weather_data(locations)
 
-    # Should return a dictionary with weather data
+    # Should return a list of weather data dictionaries
     assert result is not None
-    assert isinstance(result, dict)
-    assert 'type' in result  # GeoJSON feature
-    assert 'properties' in result
-    assert 'timeseries' in result['properties']
-    assert len(result['properties']['timeseries']) > 0
+    assert isinstance(result, list)
+    assert len(result) == 1
 
-    # Should have at least one weather data point
-    timeseries = result['properties']['timeseries']
-    assert len(timeseries) > 0
-    assert 'time' in timeseries[0]
-    assert 'data' in timeseries[0]
+    # Test first result structure
+    weather_data = result[0]
+    assert isinstance(weather_data, dict)
+    assert 'location' in weather_data
+    assert 'temperature' in weather_data
+    assert 'success' in weather_data
+    assert weather_data['success'] == True
+
+    # Test location structure
+    location = weather_data['location']
+    assert location['name'] == 'London, UK'
+    assert location['lat'] == 51.5074
+    assert location['lon'] == -0.1278
 
 
 
 def test_parse_current_weather_real_api():
     """
-    Test parse_current_weather with real API data (integration test)
+    Test parse_current_weather with real Go collector data (integration test)
     """
-    # Get real weather data
-    real_api_data = fetch_weather_data(51.5074, -0.1278)  # London
+    # Get real weather data via Go collector
+    locations = [{'name': 'London, UK', 'lat': 51.5074, 'lon': -0.1278}]
+    go_weather_data = fetch_weather_data(locations)
 
-    # Parse the real data
-    result = parse_current_weather(real_api_data)
+    assert go_weather_data is not None
+    assert len(go_weather_data) > 0
+
+    # Parse the Go collector result
+    result = parse_current_weather(go_weather_data[0])
 
     # Test structure and data types (not specific values)
     assert result is not None
@@ -69,7 +79,7 @@ def test_parse_current_weather_real_api():
     assert isinstance(result['symbol_code'], str)
     assert len(result['symbol_code']) > 0
 
-    print(f"✅ Integration test passed with real data: {temp}°C, {humidity}% humidity")
+    print(f"✅ Integration test passed with Go collector data: {temp}°C, {humidity}% humidity")
 
 
 

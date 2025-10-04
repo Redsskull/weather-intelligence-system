@@ -1,0 +1,30 @@
+{
+  "request_id": "req_20251004_042530_001",
+  "timestamp": "2025-10-04T04:25:30Z",
+  "requested_by": "python_core",
+  "locations": [
+    {
+      "name": "London, UK",
+      "lat": 51.5074,
+      "lon": -0.1278,
+      "priority": 1
+    },
+    {
+      "name": "New York, USA",
+      "lat": 40.7128,
+      "lon": -74.006,
+      "priority": 2
+    },
+    {
+      "name": "Tokyo, Japan",
+      "lat": 35.6762,
+      "lon": 139.6503,
+      "priority": 3
+    }
+  ],
+  "options": {
+    "include_forecast": true,
+    "max_wait_seconds": 30,
+    "retry_failed": true
+  }
+}

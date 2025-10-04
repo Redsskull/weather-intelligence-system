@@ -59,6 +59,24 @@ func main() {
 	}
 }
 
+// ReadLocationsFromFile reads location data from JSON file - TODO integration function
+func ReadLocationsFromFile() ([]collector.Location, error) {
+	cfg, _, err := config.Load()
+	if err != nil {
+		return nil, err
+	}
+	return readLocationsFromFile(cfg.GetInputFilePath())
+}
+
+// SaveWeatherToFile writes weather data to JSON file - TODO integration function
+func SaveWeatherToFile(data []collector.WeatherResult) error {
+	cfg, _, err := config.Load()
+	if err != nil {
+		return err
+	}
+	return writeResultsToFile(data, cfg.GetOutputFilePath())
+}
+
 // readLocationsFromFile reads location data from JSON file (Go 1.16+ style)
 func readLocationsFromFile(filename string) ([]collector.Location, error) {
 	data, err := os.ReadFile(filename)
