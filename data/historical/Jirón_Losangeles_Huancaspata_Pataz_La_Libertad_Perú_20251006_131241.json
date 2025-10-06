@@ -1,0 +1,16 @@
+{
+  "location": "Jir\u00f3n Losangeles, Huancaspata, Pataz, La Libertad, Per\u00fa",
+  "saved_at": "2025-10-06T13:12:41.443143",
+  "weather": {
+    "temperature": 6.7,
+    "pressure": 1018.1,
+    "humidity": 68.6,
+    "wind_speed": 1,
+    "wind_direction": 9.8,
+    "cloud_cover": 18.7,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "fair_day",
+    "timestamp": "2025-10-06T11:00:00Z"
+  }
+}

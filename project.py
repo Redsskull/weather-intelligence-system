@@ -13,7 +13,8 @@ import os
 from utils.translations import translate_code
 from utils.errors import display_error_help
 from utils.persistence import save_weather_data
-from utils.geocoding import geocode_city, suggest_similar_cities
+from utils.geocoding import suggest_similar_cities
+from utils.detection import get_location_with_fallback, offer_current_location_option
 
 def main():
     """
@@ -23,50 +24,73 @@ def main():
     print("Weather Intelligence System v1.0")
     print("=" * 40)
 
-    # Ask user for any city name with retry
-    while True:
-        print("🌍 Enter any city name (e.g., 'Paris', 'Tokyo', 'New York'):")
-        user_input = input("City: ").strip()
+    # Try automatic location detection with user permission
+    auto_location = get_location_with_fallback()
 
-        if user_input:
-            break
-        else:
-            print("❌ Please enter a city name")
-
-    # Get multiple suggestions (not just first result)
-    suggestions = suggest_similar_cities(user_input, limit=5)
-
-    if not suggestions:
-        print("❌ Could not find that city, exiting")
-        return
-
-    if len(suggestions) == 1:
-        # Only one option, use it
-        location_data = suggestions[0]
+    if auto_location:
+        # User allowed automatic detection and it worked
+        location_data = auto_location
+        user_input = auto_location['display_name']
     else:
-        # Multiple options, let user choose
-        print(f"\n💡 Found multiple locations for '{user_input}':")
-        for i, suggestion in enumerate(suggestions, 1):
-            country = suggestion.get('country', 'Unknown')
-            print(f"  {i}. {suggestion['display_name']} ({country})")
+        # Manual location entry with enhanced options
+        location_data = None
+        while True:
+            user_input = offer_current_location_option()
 
-        try:
-            choice = input(f"\nSelect 1-{len(suggestions)} (or Enter for #{1}): ").strip()
-            if choice and choice.isdigit():
-                choice_idx = int(choice) - 1
-                if 0 <= choice_idx < len(suggestions):
-                    location_data = suggestions[choice_idx]
-                else:
-                    location_data = suggestions[0]  # Default to first
+            if isinstance(user_input, dict):
+                # User requested current location and it worked
+                location_data = user_input
+                user_input = user_input['display_name']
+                break
+            elif user_input and isinstance(user_input, str):
+                # User entered a city name
+                break
             else:
-                location_data = suggestions[0]  # Default to first
-        except (ValueError, KeyboardInterrupt):
-            location_data = suggestions[0]  # Default to first
+                print("❌ Please enter a city name or 'current'")
 
+        # If we don't have location_data yet, geocode the user input
+        if location_data is None:
+            # Get multiple suggestions (not just first result)
+            suggestions = suggest_similar_cities(user_input, limit=5)
+
+            if not suggestions:
+                print("❌ Could not find that city, exiting")
+                return
+
+            if len(suggestions) == 1:
+                # Only one option, use it
+                location_data = suggestions[0]
+            else:
+                # Multiple options, let user choose
+                print(f"\n💡 Found multiple locations for '{user_input}':")
+                for i, suggestion in enumerate(suggestions, 1):
+                    country = suggestion.get('country', 'Unknown')
+                    print(f"  {i}. {suggestion['display_name']} ({country})")
+
+                try:
+                    choice = input(f"\nSelect 1-{len(suggestions)} (or Enter for #{1}): ").strip()
+                    if choice and choice.isdigit():
+                        choice_idx = int(choice) - 1
+                        if 0 <= choice_idx < len(suggestions):
+                            location_data = suggestions[choice_idx]
+                        else:
+                            location_data = suggestions[0]  # Default to first
+                    else:
+                        location_data = suggestions[0]  # Default to first
+                except (ValueError, KeyboardInterrupt):
+                    location_data = suggestions[0]  # Default to first
+
+    # Extract location information
     location_name = location_data['display_name']
     latitude = location_data['lat']
     longitude = location_data['lon']
 
+    # Show which method was used for transparency
+    source = location_data.get('source', 'geocoding')
+    if source == 'ip_detection':
+        print(f"📍 Using detected location: {location_name}")
+    else:
+        print(f"🌍 Using specified location: {location_name}")
 
     print(f"Fetching weather data for {location_name}...")
 

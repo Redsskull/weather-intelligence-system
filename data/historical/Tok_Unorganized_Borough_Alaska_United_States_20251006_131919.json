@@ -1,0 +1,16 @@
+{
+  "location": "Tok, Unorganized Borough, Alaska, United States",
+  "saved_at": "2025-10-06T13:19:19.099745",
+  "weather": {
+    "temperature": -0.3,
+    "pressure": 1001.6,
+    "humidity": 98.2,
+    "wind_speed": 2.3,
+    "wind_direction": 144.7,
+    "cloud_cover": 89.8,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "cloudy",
+    "timestamp": "2025-10-06T11:00:00Z"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "location": "Kristianstad, Sweden",
+  "saved_at": "2025-10-06T13:37:58.741884",
+  "weather": {
+    "temperature": 14.5,
+    "pressure": 1010.1,
+    "humidity": 79.3,
+    "wind_speed": 4,
+    "wind_direction": 339,
+    "cloud_cover": 76.2,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "partlycloudy_day",
+    "timestamp": "2025-10-06T11:00:00Z"
+  }
+}

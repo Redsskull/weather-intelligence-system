@@ -1,0 +1,16 @@
+{
+  "location": "Norje, S\u00f6lvesborgs kommun, Blekinge l\u00e4n, 294 93, Sverige",
+  "saved_at": "2025-10-05T01:29:47.889150",
+  "weather": {
+    "temperature": 8.8,
+    "pressure": 990.3,
+    "humidity": 91.5,
+    "wind_speed": 4.1,
+    "wind_direction": 220.5,
+    "cloud_cover": 79.2,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "partlycloudy_night",
+    "timestamp": "2025-10-04T23:00:00Z"
+  }
+}

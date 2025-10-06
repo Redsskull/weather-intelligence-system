@@ -1,0 +1,16 @@
+{
+  "location": "Norge",
+  "saved_at": "2025-10-06T13:38:11.146961",
+  "weather": {
+    "temperature": 6.5,
+    "pressure": 1011.5,
+    "humidity": 66.1,
+    "wind_speed": 0.8,
+    "wind_direction": 100.7,
+    "cloud_cover": 93.5,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "cloudy",
+    "timestamp": "2025-10-06T11:00:00Z"
+  }
+}

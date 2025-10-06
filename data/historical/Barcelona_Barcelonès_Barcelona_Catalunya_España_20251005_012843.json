@@ -1,0 +1,16 @@
+{
+  "location": "Barcelona, Barcelon\u00e8s, Barcelona, Catalunya, Espa\u00f1a",
+  "saved_at": "2025-10-05T01:28:43.305860",
+  "weather": {
+    "temperature": 20.4,
+    "pressure": 1016,
+    "humidity": 90.5,
+    "wind_speed": 3.8,
+    "wind_direction": 14.4,
+    "cloud_cover": 32.8,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "fair_night",
+    "timestamp": "2025-10-04T23:00:00Z"
+  }
+}

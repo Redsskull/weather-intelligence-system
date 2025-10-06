@@ -1,0 +1,16 @@
+{
+  "location": "Paris, \u00cele-de-France, France m\u00e9tropolitaine, France",
+  "saved_at": "2025-10-06T12:48:41.331747",
+  "weather": {
+    "temperature": 13.6,
+    "pressure": 1027.8,
+    "humidity": 78.6,
+    "wind_speed": 2.5,
+    "wind_direction": 245.7,
+    "cloud_cover": 100,
+    "precipitation_mm": 0,
+    "precipitation_probability": 0,
+    "symbol_code": "cloudy",
+    "timestamp": "2025-10-06T10:00:00Z"
+  }
+}
