@@ -108,51 +108,55 @@ def _parse_ip_api_response(data):
         return None
 
 
-def ask_location_permission():
+def ask_user_location_choice():
     """
-    Ask user for permission to detect their location via IP.
+    Ask user to choose between automatic location detection or manual entry.
 
     Returns:
-        bool: True if user gives permission, False otherwise
+        str: 'auto' for automatic detection, 'manual' for manual entry
     """
 
-    print("\n🎯 LOCATION DETECTION OPTION")
-    print("=" * 40)
-    print("📍 I can try to detect your current location using your IP address.")
-    print("   This will show weather for your approximate area.")
+    print("\n🎯 HOW WOULD YOU LIKE TO SET YOUR LOCATION?")
+    print("=" * 50)
+    print("Choose one of the following options:")
     print("")
-    print("🔒 Privacy Notes:")
-    print("   • This uses your IP address only (not GPS)")
+    print("🤖 1. AUTO-DETECT my location (using IP address)")
+    print("   • Quick and convenient")
     print("   • Accurate to city level (not your exact address)")
+    print("   • Uses IP address only (not GPS)")
     print("   • No personal data is stored")
-    print("   • You can always enter a city name manually")
+    print("")
+    print("✍️  2. MANUAL entry (I'll type a city name)")
+    print("   • Full control over location")
+    print("   • Works with any city worldwide")
+    print("   • No automatic detection")
     print("")
 
     while True:
-        choice = input("🤔 Would you like me to detect your location? (y/n): ").strip().lower()
+        choice = input("🤔 Choose option (1 for auto-detect, 2 for manual): ").strip()
 
-        if choice in ['y', 'yes', '1', 'true']:
-            return True
-        elif choice in ['n', 'no', '0', 'false']:
-            return False
+        if choice in ['1', 'auto', 'automatic', 'detect']:
+            return 'auto'
+        elif choice in ['2', 'manual', 'type', 'enter']:
+            return 'manual'
         else:
-            print("   Please enter 'y' for yes or 'n' for no")
+            print("   Please enter '1' for auto-detect or '2' for manual entry")
 
 
-def get_location_with_fallback():
+def get_user_location():
     """
-    Complete location detection flow with manual fallback.
-
-    1. Ask user permission for IP detection
-    2. If permitted, try to detect location via IP
-    3. If detection fails or not permitted, ask for manual input
+    Complete location flow - ask user once for their preference.
 
     Returns:
-        dict: Location data with lat, lon, display_name or None for manual fallback
+        dict: Location data with lat, lon, display_name, source
+        None: If user chose manual entry or auto-detection failed
     """
 
-    # First, ask if user wants automatic detection
-    if ask_location_permission():
+    choice = ask_user_location_choice()
+
+    if choice == 'auto':
+        print("\n🌍 DETECTING YOUR LOCATION...")
+        print("=" * 40)
         detected_location = detect_location_via_ip()
 
         if detected_location:
@@ -165,48 +169,28 @@ def get_location_with_fallback():
                 'country': detected_location['country'],
                 'source': 'ip_detection'
             }
+        else:
+            print("❌ Could not detect your location automatically.")
+            print("📝 Falling back to manual entry...")
 
-    # Fall back to manual entry
+    # User chose manual OR auto-detection failed
     print("\n🌍 MANUAL LOCATION ENTRY")
     print("=" * 40)
     return None  # Will trigger manual input in main()
 
 
-def offer_current_location_option():
+def get_manual_city_input():
     """
-    Enhanced input interface that offers current location as an option.
+    Simple manual city input without location detection options.
 
     Returns:
-        dict: Location data if user requested current location and it worked
-        str: City name if user entered one manually
+        str: City name entered by user
         None: If user entered nothing
     """
 
-    print("💡 Quick options:")
-    print("   • Type any city name (e.g., 'Paris', 'Tokyo', 'New York')")
-    print("   • Type 'current' or 'here' to use your current location")
+    print("💡 Enter any city name worldwide:")
+    print("   Examples: 'Paris', 'Tokyo', 'New York', 'London', 'Sydney'")
     print("")
 
-    user_input = input("🌍 Enter city name or 'current': ").strip()
-
-    if user_input.lower() in ['current', 'here', 'my location', 'current location']:
-        # User explicitly requested current location
-        print("\n📍 You requested your current location...")
-
-        detected_location = detect_location_via_ip()
-
-        if detected_location:
-            return {
-                'lat': detected_location['lat'],
-                'lon': detected_location['lon'],
-                'display_name': f"{detected_location['city']}, {detected_location['country']}",
-                'city': detected_location['city'],
-                'country': detected_location['country'],
-                'source': 'ip_detection'
-            }
-        else:
-            print("❌ Could not detect your location. Please enter a city name manually.")
-            return None
-
-    # Return the user input for normal city name processing
+    user_input = input("🌍 City name: ").strip()
     return user_input if user_input else None

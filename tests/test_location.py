@@ -12,7 +12,7 @@ from utils.detection import (
     detect_location_via_ip,
     _parse_ipapi_response,
     _parse_ip_api_response,
-    ask_location_permission
+    ask_user_location_choice
 )
 
 
@@ -67,18 +67,18 @@ def test_parse_ip_api_response():
     assert result is None
 
 
-@patch('builtins.input', return_value='y')
-def test_ask_location_permission_yes(mock_input):
-    """Test user gives permission"""
-    result = ask_location_permission()
-    assert result is True
+@patch('builtins.input', return_value='1')
+def test_ask_user_location_choice_auto(mock_input):
+    """Test user chooses auto-detection"""
+    result = ask_user_location_choice()
+    assert result == 'auto'
 
 
-@patch('builtins.input', return_value='n')
-def test_ask_location_permission_no(mock_input):
-    """Test user denies permission"""
-    result = ask_location_permission()
-    assert result is False
+@patch('builtins.input', return_value='2')
+def test_ask_user_location_choice_manual(mock_input):
+    """Test user chooses manual entry"""
+    result = ask_user_location_choice()
+    assert result == 'manual'
 
 
 if __name__ == "__main__":

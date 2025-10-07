@@ -1,0 +1,28 @@
+{
+  "location": "\u041c\u043e\u0441\u043a\u0432\u0430, \u0426\u0435\u043d\u0442\u0440\u0430\u043b\u044c\u043d\u044b\u0439 \u0444\u0435\u0434\u0435\u0440\u0430\u043b\u044c\u043d\u044b\u0439 \u043e\u043a\u0440\u0443\u0433, \u0420\u043e\u0441\u0441\u0438\u044f",
+  "coordinates": {
+    "lat": 55.625578,
+    "lon": 37.6063916
+  },
+  "created_at": "2025-10-07T08:59:58.717578",
+  "readings": [
+    {
+      "timestamp": "2025-10-07T06:00:00Z",
+      "saved_at": "2025-10-07T08:59:58.717578",
+      "temperature": 9.4,
+      "pressure": 1020.5,
+      "humidity": 98.5,
+      "wind_speed": 1.8,
+      "wind_direction": 96,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fog"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-07T08:59:58.717578",
+    "last_reading": "2025-10-07T08:59:58.717578"
+  }
+}
