@@ -41,7 +41,15 @@ CONDITION_MAP = {
     'high_pressure': '📈 High pressure (stable weather)',
     'light_precipitation': '🌦️ Light rain/snow',
     'moderate_precipitation': '🌧️ Moderate rain/snow',
-    'heavy_precipitation': '⛈️ Heavy rain/snow'
+    'heavy_precipitation': '⛈️ Heavy rain/snow',
+    # Forecast trend conditions
+    'warming_trend': '🌡️ Temperature rising',
+    'cooling_trend': '❄️ Temperature dropping',
+    'pressure_rising': '🌪️ Pressure increasing',
+    'pressure_dropping': '⚠️ Pressure dropping',
+    'precipitation_expected': '🌧️ Rain/snow expected',
+    'precipitation_soon': '☔ Precipitation coming soon',
+    'light_precipitation_trend': '🌦️ Light precipitation expected'
 }
 
 # All translation maps in one place

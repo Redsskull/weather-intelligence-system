@@ -64,7 +64,7 @@ func FetchWeatherForLocation(loc Location) WeatherResult {
 		}
 	}
 
-	// Extract weather data from first timeseries entry
+	// Extract weather data from timeseries entries
 	if len(apiResp.Properties.Timeseries) == 0 {
 		return WeatherResult{
 			Location: loc,
@@ -73,36 +73,62 @@ func FetchWeatherForLocation(loc Location) WeatherResult {
 		}
 	}
 
-	firstEntry := apiResp.Properties.Timeseries[0]
-	details := firstEntry.Data.Instant.Details
+	// Process all timeseries entries to extract current weather and forecasts
+	var currentWeather *WeatherPoint
+	var forecast []WeatherPoint
 
-	// Extract precipitation data from next_1_hours forecast
-	precipitationMm := 0.0
-	precipitationProb := 0.0
-	symbolCode := ""
+	for i, entry := range apiResp.Properties.Timeseries {
+		details := entry.Data.Instant.Details
 
-	if firstEntry.Data.Next1Hours.Details.PrecipitationAmount > 0 {
-		precipitationMm = firstEntry.Data.Next1Hours.Details.PrecipitationAmount
+		// Extract precipitation data from next_1_hours forecast if available
+		precipitationMm := 0.0
+		precipitationProb := 0.0
+		symbolCode := ""
+
+		if entry.Data.Next1Hours.Details.PrecipitationAmount > 0 {
+			precipitationMm = entry.Data.Next1Hours.Details.PrecipitationAmount
+		}
+		if entry.Data.Next1Hours.Details.ProbabilityOfPrecipitation > 0 {
+			precipitationProb = entry.Data.Next1Hours.Details.ProbabilityOfPrecipitation
+		}
+		if entry.Data.Next1Hours.Summary.SymbolCode != "" {
+			symbolCode = entry.Data.Next1Hours.Summary.SymbolCode
+		}
+
+		// Create weather point
+		weatherPoint := WeatherPoint{
+			Timestamp:                entry.Time,
+			Temperature:              details.AirTemperature,
+			Pressure:                 details.AirPressureAtSeaLevel,
+			Humidity:                 details.RelativeHumidity,
+			WindSpeed:                details.WindSpeed,
+			WindDirection:            details.WindFromDirection,
+			CloudCover:               details.CloudAreaFraction,
+			PrecipitationMm:          precipitationMm,
+			PrecipitationProbability: precipitationProb,
+			SymbolCode:               symbolCode,
+		}
+
+		// First entry is current weather, rest are forecasts
+		if i == 0 {
+			currentWeather = &weatherPoint
+		} else {
+			forecast = append(forecast, weatherPoint)
+		}
 	}
-	if firstEntry.Data.Next1Hours.Details.ProbabilityOfPrecipitation > 0 {
-		precipitationProb = firstEntry.Data.Next1Hours.Details.ProbabilityOfPrecipitation
-	}
-	if firstEntry.Data.Next1Hours.Summary.SymbolCode != "" {
-		symbolCode = firstEntry.Data.Next1Hours.Summary.SymbolCode
+
+	if currentWeather == nil {
+		return WeatherResult{
+			Location: loc,
+			Success:  false,
+			Error:    "No current weather data extracted",
+		}
 	}
 
 	return WeatherResult{
-		Location:                 loc,
-		Temperature:              details.AirTemperature,
-		Pressure:                 details.AirPressureAtSeaLevel,
-		Humidity:                 details.RelativeHumidity,
-		WindSpeed:                details.WindSpeed,
-		WindDirection:            details.WindFromDirection,
-		CloudCover:               details.CloudAreaFraction,
-		PrecipitationMm:          precipitationMm,
-		PrecipitationProbability: precipitationProb,
-		SymbolCode:               symbolCode,
-		Success:                  true,
-		Timestamp:                firstEntry.Time,
+		Location:       loc,
+		CurrentWeather: *currentWeather,
+		Forecast:       forecast,
+		Success:        true,
 	}
 }

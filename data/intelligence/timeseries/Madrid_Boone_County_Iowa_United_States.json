@@ -1,0 +1,28 @@
+{
+  "location": "Madrid, Boone County, Iowa, United States",
+  "coordinates": {
+    "lat": 41.8766526,
+    "lon": -93.8232813
+  },
+  "created_at": "2025-10-08T09:11:03.211836",
+  "readings": [
+    {
+      "timestamp": "2025-10-08T07:00:00Z",
+      "saved_at": "2025-10-08T09:11:03.211836",
+      "temperature": 10.1,
+      "pressure": 1027,
+      "humidity": 81,
+      "wind_speed": 2.2,
+      "wind_direction": 24.2,
+      "cloud_cover": 3.1,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "clearsky_night"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-08T09:11:03.211836",
+    "last_reading": "2025-10-08T09:11:03.211836"
+  }
+}

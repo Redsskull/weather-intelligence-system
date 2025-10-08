@@ -15,7 +15,7 @@ from utils.errors import display_error_help
 from utils.geocoding import suggest_similar_cities
 from utils.detection import get_user_location, get_manual_city_input
 from utils.intelligence_persistence import save_to_timeseries
-
+from utils.analyzer import analyze_patterns
 
 def main():
     """
@@ -121,7 +121,8 @@ def main():
     print(f"Rain Chance: {current_weather.get('precipitation_probability', 0)}%")
 
     # Step 4: Analyze patterns (Python's specialty - intelligence layer)
-    pattern_analysis = analyze_patterns([current_weather])
+    # Pass the full weather data including forecasts
+    pattern_analysis = analyze_patterns(weather_data_list[0])
 
     print("\n📊 Weather Analysis:")
     print(f"Status: {pattern_analysis.get('status', 'N/A')}")
@@ -139,6 +140,18 @@ def main():
             print(f"   • {readable_condition}")
 
     print(f"📈 Trend: {pattern_analysis.get('trend', 'unknown').replace('_', ' ').title()}")
+
+    # Show forecast insights if available, or inform user about stable conditions
+    forecast_highlights = pattern_analysis.get('forecast_highlights', [])
+    if forecast_highlights:
+        print("\n🔮 Forecast Insights:")
+        for highlight in forecast_highlights[:5]:  # Show top 5 highlights
+            print(f"   • {highlight}")
+    elif pattern_analysis.get('forecast_hours', 0) > 0:
+        # If we have forecast data but no significant insights, inform user
+        print("\nWeather Outlook:")
+        print("   • No significant weather changes expected in the near term")
+        print("   • Current conditions are expected to continue")
 
 
 def fetch_weather_data(locations):
@@ -186,7 +199,7 @@ def parse_current_weather(go_weather_result):
             display_error_help('go_collection_error', f"Go collector error: {error_msg}")
             return None
 
-        # Extract weather data (Go already parsed the API response!)
+        # Extract weather data from the processed structure (values already extracted to root level by load_go_collected_data)
         weather = {
             'temperature': go_weather_result.get('temperature'),
             'pressure': go_weather_result.get('pressure'),
@@ -207,85 +220,6 @@ def parse_current_weather(go_weather_result):
         display_error_help('data_parsing_error', str(e))
         return None
 
-
-def analyze_patterns(data):
-    """
-    Basic pattern analysis of weather data
-
-    Args:
-        data (list): List of weather data points
-
-    Returns:
-        dict: Pattern analysis results
-    """
-    if not data or len(data) == 0:
-        return {
-            "status": "No data to analyze",
-            "patterns_detected": 0,
-            "trend": "unknown",
-            "data_points": 0
-        }
-
-    # For now, we only have one data point (current weather)
-    current_weather = data[0]
-    data_points = len(data)
-
-    # Basic data quality analysis
-    analysis = {
-        "status": "Analysis complete",
-        "data_points": data_points,
-        "timestamp": current_weather.get('timestamp', 'unknown'),
-        "patterns_detected": 0,
-        "trend": "insufficient_data" if data_points < 2 else "unknown"
-    }
-
-    # Analyze current conditions
-    temp = current_weather.get('temperature')
-    humidity = current_weather.get('humidity')
-    pressure = current_weather.get('pressure')
-    precipitation = current_weather.get('precipitation_mm', 0)
-
-    # Basic condition analysis
-    conditions = []
-
-    if temp is not None:
-        if temp < 0:
-            conditions.append("freezing_temperature")
-        elif temp > 30:
-            conditions.append("hot_temperature")
-        elif 20 <= temp <= 25:
-            conditions.append("comfortable_temperature")
-
-    if humidity is not None:
-        if humidity > 80:
-            conditions.append("high_humidity")
-        elif humidity < 30:
-            conditions.append("low_humidity")
-
-    if pressure is not None:
-        if pressure < 1000:
-            conditions.append("low_pressure")
-        elif pressure > 1030:
-            conditions.append("high_pressure")
-
-    if precipitation > 0:
-        if precipitation < 0.5:
-            conditions.append("light_precipitation")
-        elif precipitation > 5:
-            conditions.append("heavy_precipitation")
-        else:
-            conditions.append("moderate_precipitation")
-
-    analysis["conditions_detected"] = conditions
-    analysis["patterns_detected"] = len(conditions)
-
-    # Generate human-readable summary
-    if len(conditions) == 0:
-        analysis["summary"] = "Normal weather conditions"
-    else:
-        analysis["summary"] = f"Detected {len(conditions)} notable conditions: {', '.join(conditions)}"
-
-    return analysis
 
 def call_go_collector(locations):
     """
@@ -410,20 +344,23 @@ def load_go_collected_data():
         # Step 3: Convert Go format to Python-friendly format (optional processing)
         processed_data = []
         for item in weather_data:
+            current_weather = item.get('current_weather', {})
+
             processed_item = {
                 'location': item.get('location', {}),
-                'temperature': item.get('temperature'),
-                'pressure': item.get('pressure'),
-                'humidity': item.get('humidity'),
-                'wind_speed': item.get('wind_speed'),
-                'wind_direction': item.get('wind_direction'),
-                'cloud_cover': item.get('cloud_cover'),
-                'precipitation_mm': item.get('precipitation_mm', 0),
-                'precipitation_probability': item.get('precipitation_probability', 0),
-                'symbol_code': item.get('symbol_code', 'unknown'),
+                'temperature': current_weather.get('temperature'),
+                'pressure': current_weather.get('pressure'),
+                'humidity': current_weather.get('humidity'),
+                'wind_speed': current_weather.get('wind_speed'),
+                'wind_direction': current_weather.get('wind_direction'),
+                'cloud_cover': current_weather.get('cloud_cover'),
+                'precipitation_mm': current_weather.get('precipitation_mm', 0),
+                'precipitation_probability': current_weather.get('precipitation_probability', 0),
+                'symbol_code': current_weather.get('symbol_code', 'unknown'),
                 'success': item.get('success', False),
                 'error': item.get('error', ''),
-                'timestamp': item.get('timestamp')
+                'timestamp': current_weather.get('timestamp'),
+                'forecast': item.get('forecast', [])  # Include forecast data for future use
             }
             processed_data.append(processed_item)
 

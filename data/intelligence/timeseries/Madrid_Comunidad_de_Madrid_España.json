@@ -1,0 +1,93 @@
+{
+  "location": "Madrid, Comunidad de Madrid, Espa\u00f1a",
+  "coordinates": {
+    "lat": 40.4167047,
+    "lon": -3.7035825
+  },
+  "created_at": "2025-10-08T08:28:38.376944",
+  "readings": [
+    {
+      "timestamp": null,
+      "saved_at": "2025-10-08T08:28:38.376944",
+      "temperature": null,
+      "pressure": null,
+      "humidity": null,
+      "wind_speed": null,
+      "wind_direction": null,
+      "cloud_cover": null,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "unknown"
+    },
+    {
+      "timestamp": "2025-10-08T06:00:00Z",
+      "saved_at": "2025-10-08T08:31:31.232137",
+      "temperature": 15.6,
+      "pressure": 1020,
+      "humidity": 46.1,
+      "wind_speed": 1.6,
+      "wind_direction": null,
+      "cloud_cover": null,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fair_day"
+    },
+    {
+      "timestamp": null,
+      "saved_at": "2025-10-08T08:33:58.671396",
+      "temperature": null,
+      "pressure": null,
+      "humidity": null,
+      "wind_speed": null,
+      "wind_direction": null,
+      "cloud_cover": null,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "unknown"
+    },
+    {
+      "timestamp": "2025-10-08T07:00:00Z",
+      "saved_at": "2025-10-08T09:06:40.299560",
+      "temperature": 15.6,
+      "pressure": 1020.4,
+      "humidity": 45.1,
+      "wind_speed": 1.9,
+      "wind_direction": 27.7,
+      "cloud_cover": 24.2,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fair_day"
+    },
+    {
+      "timestamp": "2025-10-08T07:00:00Z",
+      "saved_at": "2025-10-08T09:15:19.838872",
+      "temperature": 15.6,
+      "pressure": 1020.4,
+      "humidity": 45.1,
+      "wind_speed": 1.9,
+      "wind_direction": 27.7,
+      "cloud_cover": 24.2,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fair_day"
+    },
+    {
+      "timestamp": "2025-10-08T07:00:00Z",
+      "saved_at": "2025-10-08T09:20:13.567952",
+      "temperature": 15.6,
+      "pressure": 1020.4,
+      "humidity": 45.1,
+      "wind_speed": 1.9,
+      "wind_direction": 27.7,
+      "cloud_cover": 24.2,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fair_day"
+    }
+  ],
+  "metadata": {
+    "total_readings": 6,
+    "first_reading": "2025-10-08T08:28:38.376944",
+    "last_reading": "2025-10-08T09:20:13.567952"
+  }
+}

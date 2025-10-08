@@ -30,29 +30,31 @@ func TestWeatherResultCreation(t *testing.T) {
 	loc := Location{Name: "London", Lat: 51.5, Lon: -0.1}
 
 	result := WeatherResult{
-		Location:                 loc,
-		Temperature:              20.5,
-		PrecipitationMm:          1.2,
-		PrecipitationProbability: 75.0,
-		SymbolCode:               "lightrain",
-		Success:                  true,
-		Timestamp:                "2025-10-03T01:00:00Z",
+		Location: loc,
+		CurrentWeather: WeatherPoint{
+			Temperature:              20.5,
+			PrecipitationMm:          1.2,
+			PrecipitationProbability: 75.0,
+			SymbolCode:               "lightrain",
+			Timestamp:                "2025-10-03T01:00:00Z",
+		},
+		Success: true,
 	}
 
-	if result.Temperature != 20.5 {
-		t.Errorf("Expected temperature 20.5, got %f", result.Temperature)
+	if result.CurrentWeather.Temperature != 20.5 {
+		t.Errorf("Expected temperature 20.5, got %f", result.CurrentWeather.Temperature)
 	}
 
-	if result.PrecipitationMm != 1.2 {
-		t.Errorf("Expected precipitation 1.2mm, got %f", result.PrecipitationMm)
+	if result.CurrentWeather.PrecipitationMm != 1.2 {
+		t.Errorf("Expected precipitation 1.2mm, got %f", result.CurrentWeather.PrecipitationMm)
 	}
 
-	if result.PrecipitationProbability != 75.0 {
-		t.Errorf("Expected precipitation probability 75%%, got %f", result.PrecipitationProbability)
+	if result.CurrentWeather.PrecipitationProbability != 75.0 {
+		t.Errorf("Expected precipitation probability 75%%, got %f", result.CurrentWeather.PrecipitationProbability)
 	}
 
-	if result.SymbolCode != "lightrain" {
-		t.Errorf("Expected symbol code 'lightrain', got '%s'", result.SymbolCode)
+	if result.CurrentWeather.SymbolCode != "lightrain" {
+		t.Errorf("Expected symbol code 'lightrain', got '%s'", result.CurrentWeather.SymbolCode)
 	}
 
 	if !result.Success {
@@ -84,32 +86,32 @@ func TestFetchWeatherForLocation(t *testing.T) {
 	// If the API call succeeded, check the data makes sense
 	if result.Success {
 		t.Logf("✅ API call successful: %.1f°C, %.1fhPa, %.1fmm rain (%.0f%% chance), %s",
-			result.Temperature, result.Pressure, result.PrecipitationMm,
-			result.PrecipitationProbability, result.SymbolCode)
+			result.CurrentWeather.Temperature, result.CurrentWeather.Pressure, result.CurrentWeather.PrecipitationMm,
+			result.CurrentWeather.PrecipitationProbability, result.CurrentWeather.SymbolCode)
 
 		// Basic sanity checks for weather data
-		if result.Temperature < -50 || result.Temperature > 60 {
-			t.Errorf("Temperature seems unrealistic: %.1f°C", result.Temperature)
+		if result.CurrentWeather.Temperature < -50 || result.CurrentWeather.Temperature > 60 {
+			t.Errorf("Temperature seems unrealistic: %.1f°C", result.CurrentWeather.Temperature)
 		}
 
-		if result.Pressure < 800 || result.Pressure > 1200 {
-			t.Errorf("Pressure seems unrealistic: %.1f hPa", result.Pressure)
+		if result.CurrentWeather.Pressure < 800 || result.CurrentWeather.Pressure > 1200 {
+			t.Errorf("Pressure seems unrealistic: %.1f hPa", result.CurrentWeather.Pressure)
 		}
 
-		if result.PrecipitationMm < 0 || result.PrecipitationMm > 100 {
-			t.Errorf("Precipitation seems unrealistic: %.1f mm", result.PrecipitationMm)
+		if result.CurrentWeather.PrecipitationMm < 0 || result.CurrentWeather.PrecipitationMm > 100 {
+			t.Errorf("Precipitation seems unrealistic: %.1f mm", result.CurrentWeather.PrecipitationMm)
 		}
 
-		if result.PrecipitationProbability < 0 || result.PrecipitationProbability > 100 {
-			t.Errorf("Precipitation probability seems unrealistic: %.1f%%", result.PrecipitationProbability)
+		if result.CurrentWeather.PrecipitationProbability < 0 || result.CurrentWeather.PrecipitationProbability > 100 {
+			t.Errorf("Precipitation probability seems unrealistic: %.1f%%", result.CurrentWeather.PrecipitationProbability)
 		}
 
-		if result.Timestamp == "" {
+		if result.CurrentWeather.Timestamp == "" {
 			t.Error("Timestamp should not be empty")
 		}
 
 		// Symbol code should be present (even if empty string is valid)
-		t.Logf("Weather symbol: '%s'", result.SymbolCode)
+		t.Logf("Weather symbol: '%s'", result.CurrentWeather.SymbolCode)
 	} else {
 		t.Logf("⚠️  API call failed (this might be OK): %s", result.Error)
 		// Don't fail the test if API is down - just log it
@@ -141,7 +143,7 @@ func TestCollectWeatherData(t *testing.T) {
 		t.Logf("Location %d (%s): Success=%v", i+1, result.Location.Name, result.Success)
 		if result.Success {
 			t.Logf("  Weather: %.1f°C, %.1fmm rain, %s",
-				result.Temperature, result.PrecipitationMm, result.SymbolCode)
+				result.CurrentWeather.Temperature, result.CurrentWeather.PrecipitationMm, result.CurrentWeather.SymbolCode)
 		} else {
 			t.Logf("  Error: %s", result.Error)
 		}

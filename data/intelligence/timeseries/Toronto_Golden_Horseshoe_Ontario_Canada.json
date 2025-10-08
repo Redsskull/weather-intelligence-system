@@ -1,0 +1,28 @@
+{
+  "location": "Toronto, Golden Horseshoe, Ontario, Canada",
+  "coordinates": {
+    "lat": 43.6534817,
+    "lon": -79.3839347
+  },
+  "created_at": "2025-10-08T08:33:34.349982",
+  "readings": [
+    {
+      "timestamp": null,
+      "saved_at": "2025-10-08T08:33:34.349982",
+      "temperature": null,
+      "pressure": null,
+      "humidity": null,
+      "wind_speed": null,
+      "wind_direction": null,
+      "cloud_cover": null,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "unknown"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-08T08:33:34.349982",
+    "last_reading": "2025-10-08T08:33:34.349982"
+  }
+}

@@ -9,19 +9,25 @@ type Location struct {
 
 // WeatherResult represents the collected weather data for a location
 type WeatherResult struct {
-	Location                 Location `json:"location"`
-	Temperature              float64  `json:"temperature"`
-	Pressure                 float64  `json:"pressure"`
-	Humidity                 float64  `json:"humidity"`
-	WindSpeed                float64  `json:"wind_speed"`
-	WindDirection            float64  `json:"wind_direction"`
-	CloudCover               float64  `json:"cloud_cover"`
-	PrecipitationMm          float64  `json:"precipitation_mm"`
-	PrecipitationProbability float64  `json:"precipitation_probability"`
-	SymbolCode               string   `json:"symbol_code"`
-	Success                  bool     `json:"success"`
-	Error                    string   `json:"error,omitempty"`
-	Timestamp                string   `json:"timestamp"`
+	Location                 Location         `json:"location"`
+	CurrentWeather           WeatherPoint     `json:"current_weather"`
+	Forecast                 []WeatherPoint   `json:"forecast,omitempty"`
+	Success                  bool             `json:"success"`
+	Error                    string           `json:"error,omitempty"`
+}
+
+// WeatherPoint represents a single weather reading with timestamp
+type WeatherPoint struct {
+	Timestamp                string  `json:"timestamp"`
+	Temperature              float64 `json:"temperature"`
+	Pressure                 float64 `json:"pressure"`
+	Humidity                 float64 `json:"humidity"`
+	WindSpeed                float64 `json:"wind_speed"`
+	WindDirection            float64 `json:"wind_direction"`
+	CloudCover               float64 `json:"cloud_cover"`
+	PrecipitationMm          float64 `json:"precipitation_mm"`
+	PrecipitationProbability float64 `json:"precipitation_probability"`
+	SymbolCode               string  `json:"symbol_code"`
 }
 
 // APIResponse represents the met.no API response structure

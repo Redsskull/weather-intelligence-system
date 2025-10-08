@@ -33,7 +33,7 @@ func CollectWeatherData(locations []Location) []WeatherResult {
 		results = append(results, result)
 
 		if result.Success {
-			log.Printf("✅ Success: %s - %.1f°C", location.Name, result.Temperature)
+			log.Printf("✅ Success: %s - %.1f°C", location.Name, result.CurrentWeather.Temperature)
 		} else {
 			log.Printf("❌ Failed: %s - %s", location.Name, result.Error)
 		}

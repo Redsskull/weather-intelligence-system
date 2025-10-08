@@ -1,0 +1,28 @@
+{
+  "location": "Roma, Roma Capitale, Lazio, Italia",
+  "coordinates": {
+    "lat": 41.8933203,
+    "lon": 12.4829321
+  },
+  "created_at": "2025-10-08T08:46:59.605666",
+  "readings": [
+    {
+      "timestamp": "2025-10-08T06:00:00Z",
+      "saved_at": "2025-10-08T08:46:59.605666",
+      "temperature": 10.6,
+      "pressure": 1020.3,
+      "humidity": 76.4,
+      "wind_speed": 3.1,
+      "wind_direction": 39.8,
+      "cloud_cover": 10.2,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "clearsky_day"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-08T08:46:59.605666",
+    "last_reading": "2025-10-08T08:46:59.605666"
+  }
+}

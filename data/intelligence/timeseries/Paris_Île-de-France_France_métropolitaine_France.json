@@ -1,0 +1,28 @@
+{
+  "location": "Paris, \u00cele-de-France, France m\u00e9tropolitaine, France",
+  "coordinates": {
+    "lat": 48.8588897,
+    "lon": 2.320041
+  },
+  "created_at": "2025-10-08T09:04:12.314888",
+  "readings": [
+    {
+      "timestamp": "2025-10-08T07:00:00Z",
+      "saved_at": "2025-10-08T09:04:12.314888",
+      "temperature": 9.7,
+      "pressure": 1023.1,
+      "humidity": 99.3,
+      "wind_speed": 1.6,
+      "wind_direction": 9.7,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fog"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-08T09:04:12.314888",
+    "last_reading": "2025-10-08T09:04:12.314888"
+  }
+}
