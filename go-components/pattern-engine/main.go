@@ -65,7 +65,7 @@ func parseLocationData(filePath string) (models.LocationData, error) {
 	}
 
 	// Parse into structured format
-	var rawData map[string]interface{}
+	var rawData map[string]any
 	if err := json.Unmarshal(data, &rawData); err != nil {
 		return locationData, err
 	}
@@ -76,7 +76,7 @@ func parseLocationData(filePath string) (models.LocationData, error) {
 	}
 
 	// Extract coordinates if available
-	if coords, ok := rawData["coordinates"].(map[string]interface{}); ok {
+	if coords, ok := rawData["coordinates"].(map[string]any); ok {
 		if lat, ok := coords["lat"].(float64); ok {
 			if lon, ok := coords["lon"].(float64); ok {
 				locationData.Coordinates = models.Coordinates{
@@ -88,9 +88,9 @@ func parseLocationData(filePath string) (models.LocationData, error) {
 	}
 
 	// Extract readings
-	if readings, ok := rawData["readings"].([]interface{}); ok {
+	if readings, ok := rawData["readings"].([]any); ok {
 		for _, readingData := range readings {
-			if readingMap, ok := readingData.(map[string]interface{}); ok {
+			if readingMap, ok := readingData.(map[string]any); ok {
 				reading := parseWeatherReading(readingMap)
 				if !reading.Timestamp.IsZero() { // Only add if timestamp is valid
 					locationData.Readings = append(locationData.Readings, reading)
@@ -103,7 +103,7 @@ func parseLocationData(filePath string) (models.LocationData, error) {
 }
 
 // parseWeatherReading converts raw reading data to WeatherPoint
-func parseWeatherReading(readingMap map[string]interface{}) models.WeatherPoint {
+func parseWeatherReading(readingMap map[string]any) models.WeatherPoint {
 	var wp models.WeatherPoint
 
 	// Parse timestamp
@@ -159,7 +159,7 @@ func performAnalysis(locationData *models.LocationData, ta *analysis.TrendAnalyz
 	fmt.Printf("📈 Trend Analysis:\n")
 	trends := ta.AnalyzeTrends(locationData)
 	for _, trend := range trends {
-		fmt.Printf("   📊 %s: %s (%.3f units/hour, confidence: %.2f)\n", 
+		fmt.Printf("   📊 %s: %s (%.3f units/hour, confidence: %.2f)\n",
 			trend.Variable, trend.Trend, trend.ChangeRate, trend.Confidence)
 	}
 
@@ -167,7 +167,7 @@ func performAnalysis(locationData *models.LocationData, ta *analysis.TrendAnalyz
 	fmt.Printf("🔍 Anomaly Detection:\n")
 	anomalies := ad.DetectAnomalies(locationData)
 	for _, anomaly := range anomalies {
-		fmt.Printf("   ⚠️  %s: %s (%.2f, severity: %s)\n", 
+		fmt.Printf("   ⚠️  %s: %s (%.2f, severity: %s)\n",
 			anomaly.Variable, anomaly.Type, anomaly.Value, anomaly.Severity)
 	}
 
@@ -175,7 +175,7 @@ func performAnalysis(locationData *models.LocationData, ta *analysis.TrendAnalyz
 	fmt.Printf("🧩 Pattern Recognition:\n")
 	patterns := pr.RecognizePatterns(locationData)
 	for _, pattern := range patterns {
-		fmt.Printf("   🌦️  %s: %s (confidence: %.2f, strength: %.2f)\n", 
+		fmt.Printf("   🌦️  %s: %s (confidence: %.2f, strength: %.2f)\n",
 			pattern.Name, pattern.Description, pattern.Confidence, pattern.Strength)
 	}
 
@@ -190,9 +190,9 @@ func performAnalysis(locationData *models.LocationData, ta *analysis.TrendAnalyz
 	// Generate summary statistics
 	fmt.Printf("📊 Statistical Summary:\n")
 	summary := generateWeatherSummary(locationData)
-	fmt.Printf("   🌡️  Temp: %.1f°C → %.1f°C (Δ%.1f°C)\n", 
+	fmt.Printf("   🌡️  Temp: %.1f°C → %.1f°C (Δ%.1f°C)\n",
 		summary.MinTemperature, summary.MaxTemperature, summary.MaxTemperature-summary.MinTemperature)
-	fmt.Printf("   🌪️  Pressure: %.1f → %.1f hPa\n", 
+	fmt.Printf("   🌪️  Pressure: %.1f → %.1f hPa\n",
 		summary.MinPressure, summary.MaxPressure)
 	fmt.Printf("   📅 Duration: %s\n", calculateDuration(locationData.Readings))
 
@@ -262,9 +262,9 @@ func calculateDuration(readings []models.WeatherPoint) string {
 }
 
 // saveAnalysisResult saves the comprehensive analysis to a JSON file
-func saveAnalysisResult(locationData *models.LocationData, trends []models.Trend, anomalies []models.Anomaly, 
+func saveAnalysisResult(locationData *models.LocationData, trends []models.Trend, anomalies []models.Anomaly,
 	patterns []models.Pattern, statistics []models.StatisticalData, summary models.WeatherSummary) {
-	
+
 	// Create AnalysisResult structure
 	analysisResult := models.AnalysisResult{
 		AnalysisType:    "comprehensive_weather_analysis",
@@ -286,10 +286,10 @@ func saveAnalysisResult(locationData *models.LocationData, trends []models.Trend
 	safeLocation := strings.ReplaceAll(locationData.Name, " ", "_")
 	safeLocation = strings.ReplaceAll(safeLocation, ",", "")
 	safeLocation = strings.ReplaceAll(safeLocation, "/", "_")
-	
-	filename := fmt.Sprintf("%s/%s_analysis_%s.json", outputDir, safeLocation, 
+
+	filename := fmt.Sprintf("%s/%s_analysis_%s.json", outputDir, safeLocation,
 		time.Now().Format("20060102_150405"))
-	
+
 	// Convert to JSON with indentation
 	jsonData, err := json.MarshalIndent(analysisResult, "", "  ")
 	if err != nil {

@@ -2,17 +2,17 @@ package analysis
 
 // VariableStats holds statistical information about a variable
 type VariableStats struct {
-	Mean     float64
-	StdDev   float64
-	Min      float64
-	Max      float64
+	Mean       float64
+	StdDev     float64
+	Min        float64
+	Max        float64
 	SampleSize int
 }
 
 // TrendAnalyzer performs trend analysis on weather data
 type TrendAnalyzer struct {
 	MinReadingsForAnalysis int
-	MinTrendSignificance float64
+	MinTrendSignificance   float64
 }
 
 // AnomalyDetector detects unusual weather patterns and anomalies
