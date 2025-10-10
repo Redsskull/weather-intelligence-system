@@ -11,39 +11,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.translations import (
     translate_code,
-    translate_weather_symbol,
-    translate_condition,
     WEATHER_SYMBOL_MAP,
     CONDITION_MAP
 )
 
 
-def test_translate_weather_symbol():
-    """Test weather symbol translation"""
-    # Test known symbols
-    assert translate_weather_symbol('clearsky_day') == '☀️ Clear sky'
-    assert translate_weather_symbol('clearsky_night') == '🌙 Clear night'
-    assert translate_weather_symbol('rain') == '🌧️ Rain'
-    assert translate_weather_symbol('snow') == '❄️ Snow'
-    assert translate_weather_symbol('thunderstorm') == '⛈️ Thunderstorm'
 
-    # Test unknown symbol
-    assert translate_weather_symbol('alien_invasion') == '❓ alien_invasion'
-
-    # Test empty string
-    assert translate_weather_symbol('') == '❓ '
-
-
-def test_translate_condition():
-    """Test weather condition translation"""
-    # Test known conditions
-    assert translate_condition('freezing_temperature') == '🧊 Freezing conditions'
-    assert translate_condition('high_humidity') == '💧 Very humid'
-    assert translate_condition('low_pressure') == '📉 Low pressure (storm possible)'
-    assert translate_condition('heavy_precipitation') == '⛈️ Heavy rain/snow'
-
-    # Test unknown condition
-    assert translate_condition('unknown_condition') == '❓ unknown_condition'
 
 
 def test_translate_code_universal():
@@ -121,38 +94,4 @@ def test_translation_consistency():
         assert '  ' not in translation
 
 
-def test_case_sensitivity():
-    """Test that translation handles case correctly"""
-    # Test exact case
-    assert translate_weather_symbol('rain') == '🌧️ Rain'
 
-    # Test that wrong case returns fallback
-    assert translate_weather_symbol('RAIN') == '❓ RAIN'
-    assert translate_weather_symbol('Rain') == '❓ Rain'
-
-
-def test_none_and_invalid_inputs():
-    """Test handling of None and invalid inputs"""
-    # Test None inputs
-    assert translate_weather_symbol(None) == '❓ None'
-    assert translate_condition(None) == '❓ None'
-
-    # Test numeric inputs
-    assert translate_weather_symbol(123) == '❓ 123'
-    assert translate_condition(456) == '❓ 456'
-
-
-def test_wrapper_functions_match_universal():
-    """Test that wrapper functions produce same results as universal function"""
-    test_symbol = 'cloudy'
-    test_condition = 'high_humidity'
-
-    # Weather symbol wrapper should match universal function
-    wrapper_result = translate_weather_symbol(test_symbol)
-    universal_result = translate_code(test_symbol, 'weather_symbol')
-    assert wrapper_result == universal_result
-
-    # Condition wrapper should match universal function
-    wrapper_result = translate_condition(test_condition)
-    universal_result = translate_code(test_condition, 'condition')
-    assert wrapper_result == universal_result

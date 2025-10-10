@@ -1,0 +1,28 @@
+{
+  "location": "City of New York, New York, United States",
+  "coordinates": {
+    "lat": 40.7127281,
+    "lon": -74.0060152
+  },
+  "created_at": "2025-10-10T11:58:57.336289",
+  "readings": [
+    {
+      "timestamp": "2025-10-10T09:00:00Z",
+      "saved_at": "2025-10-10T11:58:57.336289",
+      "temperature": 7.1,
+      "pressure": 1032,
+      "humidity": 80.9,
+      "wind_speed": 3.6,
+      "wind_direction": 10.5,
+      "cloud_cover": 0,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "clearsky_night"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-10T11:58:57.336289",
+    "last_reading": "2025-10-10T11:58:57.336289"
+  }
+}
