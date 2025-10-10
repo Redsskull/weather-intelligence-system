@@ -5,10 +5,8 @@ Main application file for weather data analysis and pattern recognition.
 This file must be named 'project.py' per CS50 requirements.
 """
 
-import json
-import subprocess
-import os
-
+from datetime import datetime, date, timedelta
+from collections import Counter, defaultdict
 # Import custom modules
 from utils.translations import translate_code
 from utils.errors import display_error_help
@@ -16,6 +14,7 @@ from utils.geocoding import suggest_similar_cities
 from utils.detection import get_user_location, get_manual_city_input
 from utils.intelligence_persistence import save_to_timeseries
 from utils.analyzer import analyze_patterns
+from utils.collection import call_go_collector, load_go_collected_data
 
 def main():
     """
@@ -153,6 +152,10 @@ def main():
         print("   • No significant weather changes expected in the near term")
         print("   • Current conditions are expected to continue")
 
+    # Display detailed hourly forecast for today and next 6 days
+    print("\n📅 Weekly Forecast:")
+    display_weekly_forecast(weather_data_list[0])
+
 
 def fetch_weather_data(locations):
     """
@@ -213,7 +216,7 @@ def parse_current_weather(go_weather_result):
             'timestamp': go_weather_result.get('timestamp')
         }
 
-    
+
         return weather
 
     except Exception as e:
@@ -221,148 +224,210 @@ def parse_current_weather(go_weather_result):
         return None
 
 
-def call_go_collector(locations):
+def display_weekly_forecast(go_weather_result):
     """
-    Execute Go data collector subprocess
+    Display compact weekly forecast showing today's hourly forecast and next 6 days
 
     Args:
-        locations (list): List of location dictionaries with 'name', 'lat', 'lon'
-
-    Returns:
-        bool: True if Go collector executed successfully, False otherwise
-
-    Example:
-        locations = [
-            {'name': 'London, UK', 'lat': 51.5074, 'lon': -0.1278},
-            {'name': 'Paris, France', 'lat': 48.8566, 'lon': 2.3522}
-        ]
-        success = call_go_collector(locations)
+        go_weather_result (dict): Weather data from Go collector including forecast
     """
-    # Step 1: Create integration directory if it doesn't exist
-    integration_dir = "data/integration"
-    os.makedirs(integration_dir, exist_ok=True)
+    if not go_weather_result.get('forecast'):
+        print("   • No detailed forecast data available")
+        return
 
-    # Step 2: Write locations to input file for Go to read
-    input_file = os.path.join(integration_dir, "input_locations.json")
+    # Get forecast data
+    forecast_data = go_weather_result['forecast']
 
-    try:
-        # Convert Python location format to Go format
-        go_locations = []
-        for loc in locations:
-            go_location = {
-                "name": loc.get("name", "Unknown"),
-                "lat": float(loc.get("lat", 0)),
-                "lon": float(loc.get("lon", 0))
-            }
-            go_locations.append(go_location)
+    # Group forecast by date
+    forecast_by_date = {}
+    for forecast_point in forecast_data:
+        # Parse the timestamp to extract the date
+        timestamp_str = forecast_point.get('timestamp', '')
+        if timestamp_str:
+            try:
+                # Handle ISO format: "2025-10-10T07:00:00Z"
+                forecast_time = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                date_key = forecast_time.strftime('%Y-%m-%d')
 
-        # Write to JSON file
-        with open(input_file, 'w') as f:
-            json.dump(go_locations, f, indent=2)
+                if date_key not in forecast_by_date:
+                    forecast_by_date[date_key] = []
+                forecast_by_date[date_key].append(forecast_point)
+            except ValueError:
+                continue  # Skip invalid timestamps
 
+    # Get today's date and next 6 days
+    today = date.today()
+    days_to_show = []
 
+    # Add today
+    days_to_show.append(today.strftime('%Y-%m-%d'))
 
-    except Exception as e:
-        display_error_help('file_write_error', f"Could not write locations: {e}")
-        return False
+    # Add next 6 days
+    for i in range(1, 7):
+        future_date = today + timedelta(days=i)
+        days_to_show.append(future_date.strftime('%Y-%m-%d'))
 
-    # Step 3: Execute Go data collector
-    try:
-    
+    # Display forecasts in a more compact format
+    for i, date_key in enumerate(days_to_show):
+        if date_key in forecast_by_date:
+            day_forecasts = forecast_by_date[date_key]
+            day_obj = datetime.strptime(date_key, '%Y-%m-%d')
 
-        # Change to Go directory and run
-        go_dir = "go-components/data-collector"
-        result = subprocess.run(
-            ["go", "run", "main.go"],
-            cwd=go_dir,
-            capture_output=True,
-            text=True,
-            timeout=30  # 30 second timeout
-        )
+            # Format day name (Today, Tomorrow, or abbreviated day)
+            if i == 0:
+                day_name = "Today"
+            elif i == 1:
+                day_name = "Tomorrow"
+            else:
+                day_name = day_obj.strftime('%a')  # Abbreviated day name
 
-        if result.returncode == 0:
-            # Go data collector completed successfully
-            return True
+            # For today, show compact hourly forecast with icons
+            if i == 0:
+                # Get key hourly forecasts for today - select representative times throughout the day
+                if len(day_forecasts) > 0:
+                    # Group forecasts by hour to find the best representative for each time period
+                    hourly_forecasts = defaultdict(list)
+
+                    for forecast in day_forecasts:
+                        hour_time = datetime.fromisoformat(forecast['timestamp'].replace('Z', '+00:00'))
+                        hour = hour_time.hour
+                        hourly_forecasts[hour].append(forecast)
+
+                    # Select forecasts for key times of day: early morning (7-9), late morning (10-11),
+                    # noon (12), afternoon (15-16), evening (18-20)
+                    selected_forecasts = []
+
+                    # Define time periods and select first forecast from each period if available
+                    time_periods = [
+                        (range(6, 10), "early morning"),     # 6-9 AM
+                        (range(10, 13), "late morning"),     # 10-12 AM
+                        (range(13, 17), "afternoon"),        # 1-4 PM
+                        (range(17, 21), "evening"),          # 5-8 PM
+                        (range(21, 24), "night")             # 9-11 PM
+                    ]
+
+                    for period_range, period_name in time_periods:
+                        # Look for forecasts in this time period
+                        found_forecast = None
+                        for hour in period_range:
+                            if hour in hourly_forecasts and len(hourly_forecasts[hour]) > 0:
+                                found_forecast = hourly_forecasts[hour][0]  # Take first one in the hour
+                                break
+                        if found_forecast:
+                            selected_forecasts.append(found_forecast)
+
+                    # If we don't have 5 forecasts, supplement with evenly distributed ones
+                    if len(selected_forecasts) < 5 and len(day_forecasts) > 0:
+                        all_hours_sorted = sorted(day_forecasts, key=lambda x: datetime.fromisoformat(x['timestamp'].replace('Z', '+00:00')))
+                        needed = 5 - len(selected_forecasts)
+                        stride = max(1, len(all_hours_sorted) // needed)
+                        for j in range(0, len(all_hours_sorted), stride):
+                            if len(selected_forecasts) >= 5:
+                                break
+                            if all_hours_sorted[j] not in selected_forecasts:
+                                selected_forecasts.append(all_hours_sorted[j])
+
+                    temps = [f.get('temperature', 0) for f in day_forecasts if f.get('temperature') is not None]
+                    if temps:
+                        min_temp = min(temps)
+                        max_temp = max(temps)
+
+                        total_precip = sum(f.get('precipitation_mm', 0) for f in day_forecasts)
+
+                        # Display day header with min/max
+                        if total_precip > 0:
+                            precip_icon = "🌧️" if total_precip >= 1.0 else "🌦️"
+                            print(f"   {day_name} ({day_obj.strftime('%b %d')}): {min_temp:.0f}° → {max_temp:.0f}° {precip_icon}{total_precip:.1f}mm")
+                        else:
+                            print(f"   {day_name} ({day_obj.strftime('%b %d')}): {min_temp:.0f}° → {max_temp:.0f}°")
+
+                        # Display hourly forecast in a single horizontal line
+                        hourly_items = []
+                        for forecast in selected_forecasts[:5]:  # Take max 5
+                            hour_time = datetime.fromisoformat(forecast['timestamp'].replace('Z', '+00:00'))
+                            temp = forecast.get('temperature', 'N/A')
+                            # Use the translation function which returns emoji + description
+                            full_translation = translate_code(forecast.get('symbol_code', 'unknown'), 'weather_symbol')
+                            # Extract just the emoji (first part before space) if it contains a space
+                            if ' ' in full_translation:
+                                icon = full_translation.split(' ', 1)[0]  # Get part before first space
+                            else:
+                                icon = full_translation  # Use as-is if no space
+
+                            temp_str = f"{temp:.0f}°" if isinstance(temp, (int, float)) else str(temp)
+                            hourly_items.append(f"{hour_time.strftime('%H')}h {icon} {temp_str}")
+
+                        # Print as a single line with pipe separators
+                        if hourly_items:
+                            print(f"      {' | '.join(hourly_items)}")
+            else:
+                # For other days, show min/max temperatures and condition in a single line
+                temps = [f.get('temperature', 0) for f in day_forecasts if f.get('temperature') is not None]
+                if temps:
+                    min_temp = min(temps)
+                    max_temp = max(temps)
+
+                    # Calculate total precipitation for the day
+                    total_precip = sum(f.get('precipitation_mm', 0) for f in day_forecasts)
+
+                    # Find the most common weather condition for the day (excluding empty strings)
+                    conditions = [f.get('symbol_code', 'unknown') for f in day_forecasts if f.get('symbol_code', '') != '']
+                    if conditions:
+                        # Find the most common condition
+                        condition_counts = Counter(conditions)
+                        main_translation = translate_code(condition_counts.most_common(1)[0][0], 'weather_symbol')
+                        # Get the emoji by splitting on space (emoji part before space)
+                        if ' ' in main_translation:
+                            main_icon = main_translation.split(' ', 1)[0]
+                        else:
+                            main_icon = main_translation
+
+                        # Show precipitation amount with the precipitation icon OR just the weather icon
+                        if total_precip > 0:
+                            precip_info = f" ({total_precip:.1f}mm)"
+                            print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {main_icon}{precip_info}")
+                        else:
+                            print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {main_icon}")
+                    else:
+                        # No conditions available, just show temps and any precipitation
+                        if total_precip > 0:
+                            precip_icon = "🌧️" if total_precip >= 1.0 else "🌦️"
+                            print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {precip_icon} ({total_precip:.1f}mm)")
+                        else:
+                            print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}°")
         else:
-            return False
-
-    except subprocess.TimeoutExpired:
-        display_error_help('subprocess_timeout', "Go collector took too long")
-        return False
-    except FileNotFoundError:
-        display_error_help('go_not_found', "Go not installed or not in PATH")
-        return False
-    except Exception as e:
-        display_error_help('subprocess_error', str(e))
-        return False
+            print(f"   {date_key} (Day {i+1}): No forecast data available")
 
 
-def load_go_collected_data():
+def get_forecast_for_time(forecast_data, target_time):
     """
-    Read data from Go collector output
+    Helper function to get forecast closest to a specific time
+
+    Args:
+        forecast_data (list): List of forecast data points
+        target_time (datetime): Target time to find forecast for
 
     Returns:
-        list: List of weather data dictionaries, or None if failed
-
-    Example return format:
-        [
-            {
-                "location": {"name": "London, UK", "lat": 51.5074, "lon": -0.1278},
-                "temperature": 15.2,
-                "pressure": 1013.25,
-                "humidity": 65.0,
-                "wind_speed": 4.5,
-                "success": true,
-                "timestamp": "2025-09-26T15:00:00Z"
-            }
-        ]
+        dict: Forecast data point closest to the target time, or None
     """
-
-    # Step 1: Check if output file exists
-    output_file = "data/integration/output_weather.json"
-
-    if not os.path.exists(output_file):
-        display_error_help('file_not_found', f"Go output file not found: {output_file}")
+    if not forecast_data:
         return None
 
-    # Step 2: Read and parse the JSON file
-    try:
-        with open(output_file, 'r') as f:
-            weather_data = json.load(f)
+    # Find forecast closest to target_time
+    closest_forecast = forecast_data[0]
+    closest_diff = abs((datetime.fromisoformat(closest_forecast['timestamp'].replace('Z', '+00:00')) - target_time).total_seconds())
 
+    for forecast in forecast_data:
+        try:
+            forecast_time = datetime.fromisoformat(forecast['timestamp'].replace('Z', '+00:00'))
+            diff = abs((forecast_time - target_time).total_seconds())
+            if diff < closest_diff:
+                closest_diff = diff
+                closest_forecast = forecast
+        except ValueError:
+            continue
 
-
-        # Step 3: Convert Go format to Python-friendly format (optional processing)
-        processed_data = []
-        for item in weather_data:
-            current_weather = item.get('current_weather', {})
-
-            processed_item = {
-                'location': item.get('location', {}),
-                'temperature': current_weather.get('temperature'),
-                'pressure': current_weather.get('pressure'),
-                'humidity': current_weather.get('humidity'),
-                'wind_speed': current_weather.get('wind_speed'),
-                'wind_direction': current_weather.get('wind_direction'),
-                'cloud_cover': current_weather.get('cloud_cover'),
-                'precipitation_mm': current_weather.get('precipitation_mm', 0),
-                'precipitation_probability': current_weather.get('precipitation_probability', 0),
-                'symbol_code': current_weather.get('symbol_code', 'unknown'),
-                'success': item.get('success', False),
-                'error': item.get('error', ''),
-                'timestamp': current_weather.get('timestamp'),
-                'forecast': item.get('forecast', [])  # Include forecast data for future use
-            }
-            processed_data.append(processed_item)
-
-        return processed_data
-
-    except json.JSONDecodeError as e:
-        display_error_help('json_parsing_error', f"Invalid JSON in output file: {e}")
-        return None
-    except Exception as e:
-        display_error_help('file_read_error', f"Could not read output file: {e}")
-        return None
+    return closest_forecast
 
 
 if __name__ == "__main__":

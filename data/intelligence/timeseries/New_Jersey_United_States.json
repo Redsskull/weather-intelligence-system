@@ -1,0 +1,28 @@
+{
+  "location": "New Jersey, United States",
+  "coordinates": {
+    "lat": 40.0757384,
+    "lon": -74.4041622
+  },
+  "created_at": "2025-10-10T08:54:13.926270",
+  "readings": [
+    {
+      "timestamp": "2025-10-10T06:00:00Z",
+      "saved_at": "2025-10-10T08:54:13.926270",
+      "temperature": 8.2,
+      "pressure": 1031.9,
+      "humidity": 68.5,
+      "wind_speed": 3.2,
+      "wind_direction": 22.3,
+      "cloud_cover": 7,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "clearsky_night"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-10T08:54:13.926270",
+    "last_reading": "2025-10-10T08:54:13.926270"
+  }
+}

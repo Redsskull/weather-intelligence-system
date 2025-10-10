@@ -1,0 +1,28 @@
+{
+  "location": "Helsinki, Helsingin seutukunta, Uusimaa, Manner-Suomi, Suomi / Finland",
+  "coordinates": {
+    "lat": 60.1698897,
+    "lon": 24.9384719
+  },
+  "created_at": "2025-10-10T08:34:16.287605",
+  "readings": [
+    {
+      "timestamp": "2025-10-10T06:00:00Z",
+      "saved_at": "2025-10-10T08:34:16.287605",
+      "temperature": 10.8,
+      "pressure": 1005.1,
+      "humidity": 88.2,
+      "wind_speed": 2.3,
+      "wind_direction": 288.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-10T08:34:16.287605",
+    "last_reading": "2025-10-10T08:34:16.287605"
+  }
+}

@@ -98,3 +98,20 @@ def translate_condition(condition_code):
         str: Human-readable condition description
     """
     return translate_code(condition_code, 'condition')
+
+
+def get_weather_icon(symbol_code):
+    """
+    Get just the emoji icon for a weather symbol code
+
+    Args:
+        symbol_code (str): Weather symbol code from API
+
+    Returns:
+        str: Just the emoji icon (without description text)
+    """
+    full_translation = translate_code(symbol_code, 'weather_symbol')
+    # Extract just the emoji (first part before space)
+    if ' ' in full_translation:
+        return full_translation.split(' ', 1)[0]
+    return full_translation
