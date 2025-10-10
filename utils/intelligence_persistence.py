@@ -58,7 +58,6 @@ def save_to_timeseries(weather_data, location_name, coordinates=None):
                 }
             }
     except Exception as e:
-        print(f"⚠️  Error loading existing timeseries: {e}")
         timeseries = {
             "location": location_name,
             "coordinates": coordinates or {},
@@ -99,10 +98,8 @@ def save_to_timeseries(weather_data, location_name, coordinates=None):
     try:
         with open(timeseries_file, 'w') as f:
             json.dump(timeseries, f, indent=2)
-        print(f"📈 Time-series data saved: {timeseries['metadata']['total_readings']} readings for {location_name}")
         return timeseries_file
     except Exception as e:
-        print(f"❌ Failed to save timeseries data: {e}")
         return None
 
 
@@ -121,16 +118,13 @@ def load_location_timeseries(location_name):
     timeseries_file = f"data/intelligence/timeseries/{safe_location}.json"
 
     if not os.path.exists(timeseries_file):
-        print(f"📂 No time-series data found for {location_name}")
         return None
 
     try:
         with open(timeseries_file, 'r') as f:
             data = json.load(f)
-        print(f"📊 Loaded {data['metadata']['total_readings']} readings for {location_name}")
         return data
     except Exception as e:
-        print(f"❌ Error loading timeseries for {location_name}: {e}")
         return None
 
 
@@ -162,7 +156,6 @@ def calculate_location_baseline(location_name, days_back=30):
             continue  # Skip readings with bad timestamps
 
     if len(recent_readings) < 3:
-        print(f"⚠️  Insufficient data for baseline calculation: {len(recent_readings)} readings")
         return None
 
     # Calculate statistics for numeric fields
@@ -201,10 +194,8 @@ def calculate_location_baseline(location_name, days_back=30):
     try:
         with open(baseline_file, 'w') as f:
             json.dump(baseline, f, indent=2)
-        print(f"📊 Baseline calculated for {location_name}: {len(baseline['statistics'])} metrics")
         return baseline
     except Exception as e:
-        print(f"❌ Failed to save baseline: {e}")
         return baseline  # Return data even if save failed
 
 
@@ -279,12 +270,6 @@ def prepare_go_analysis_input(location_names=None, max_days=7):
         with open(input_file, 'w') as f:
             json.dump(analysis_input, f, indent=2)
 
-        print(f"🚀 Go analysis input prepared:")
-        print(f"   📁 File: {input_file}")
-        print(f"   🌍 Locations: {len(analysis_input['locations'])}")
-        print(f"   📅 Max days: {max_days}")
-
         return input_file
     except Exception as e:
-        print(f"❌ Failed to prepare Go analysis input: {e}")
         return None

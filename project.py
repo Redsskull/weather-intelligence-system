@@ -178,7 +178,7 @@ def fetch_weather_data(locations):
         display_error_help('go_data_load_failed', 'Failed to load Go collector results')
         return None
 
-    print(f"✅ Successfully collected weather data for {len(weather_data)} locations via Go engine")
+
     return weather_data
 
 
@@ -213,7 +213,7 @@ def parse_current_weather(go_weather_result):
             'timestamp': go_weather_result.get('timestamp')
         }
 
-        print("✅ Successfully parsed Go collector weather data")
+    
         return weather
 
     except Exception as e:
@@ -260,7 +260,7 @@ def call_go_collector(locations):
         with open(input_file, 'w') as f:
             json.dump(go_locations, f, indent=2)
 
-        print(f"📝 Wrote {len(go_locations)} locations to {input_file}")
+
 
     except Exception as e:
         display_error_help('file_write_error', f"Could not write locations: {e}")
@@ -268,7 +268,7 @@ def call_go_collector(locations):
 
     # Step 3: Execute Go data collector
     try:
-        print("🚀 Launching Go data collector...")
+    
 
         # Change to Go directory and run
         go_dir = "go-components/data-collector"
@@ -281,18 +281,9 @@ def call_go_collector(locations):
         )
 
         if result.returncode == 0:
-            print("✅ Go data collector completed successfully")
-            print("📊 Go collector output:")
-            # Print the Go program's output (it has nice logging)
-            if result.stdout.strip():
-                for line in result.stdout.strip().split('\n'):
-                    print(f"   {line}")
+            # Go data collector completed successfully
             return True
         else:
-            print("❌ Go data collector failed")
-            print(f"Exit code: {result.returncode}")
-            if result.stderr:
-                print(f"Error: {result.stderr}")
             return False
 
     except subprocess.TimeoutExpired:
@@ -339,7 +330,7 @@ def load_go_collected_data():
         with open(output_file, 'r') as f:
             weather_data = json.load(f)
 
-        print(f"📊 Loaded weather data for {len(weather_data)} locations from Go collector")
+
 
         # Step 3: Convert Go format to Python-friendly format (optional processing)
         processed_data = []

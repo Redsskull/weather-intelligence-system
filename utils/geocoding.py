@@ -28,9 +28,8 @@ class GeocodeCache:
             if os.path.exists(self.cache_file):
                 with open(self.cache_file, 'r') as f:
                     self.cache_data = json.load(f)
-                    print(f"📊 Loaded {len(self.cache_data)} cached locations")
         except Exception as e:
-            print(f"⚠️  Could not load geocode cache: {e}")
+            # Silently handle cache loading errors
             self.cache_data = {}
 
     def _save_cache(self):
@@ -39,7 +38,8 @@ class GeocodeCache:
             with open(self.cache_file, 'w') as f:
                 json.dump(self.cache_data, f, indent=2)
         except Exception as e:
-            print(f"⚠️  Could not save geocode cache: {e}")
+            # Silently handle cache saving errors
+            pass
 
     def get(self, city_name):
         """Get cached result for city"""
@@ -70,8 +70,6 @@ def suggest_similar_cities(city_name, limit=5):
     """
 
     try:
-        print(f"💡 Finding suggestions for '{city_name}'...")
-
         url = "https://nominatim.openstreetmap.org/search"
         params = {
             'q': city_name,
@@ -115,5 +113,4 @@ def suggest_similar_cities(city_name, limit=5):
             return []
 
     except Exception as e:
-        print(f"💥 Error getting suggestions: {e}")
         return []

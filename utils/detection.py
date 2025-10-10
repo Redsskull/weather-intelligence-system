@@ -28,8 +28,6 @@ def detect_location_via_ip():
         }
     """
 
-    print("🌍 Detecting your location via IP address...")
-
     # Try multiple services for reliability
     services = [
         {
@@ -46,8 +44,6 @@ def detect_location_via_ip():
 
     for service in services:
         try:
-            print(f"📍 Trying {service['name']}...")
-
             response = requests.get(
                 service['url'],
                 headers={'User-Agent': 'WeatherIntelligenceSystem/1.0'},
@@ -59,14 +55,11 @@ def detect_location_via_ip():
                 location = service['parser'](data)
 
                 if location:
-                    print(f"✅ Location detected: {location['city']}, {location['country']}")
                     return location
 
         except Exception as e:
-            print(f"⚠️  {service['name']} failed: {e}")
             continue
 
-    print("❌ Could not detect location via IP")
     return None
 
 
@@ -155,8 +148,6 @@ def get_user_location():
     choice = ask_user_location_choice()
 
     if choice == 'auto':
-        print("\n🌍 DETECTING YOUR LOCATION...")
-        print("=" * 40)
         detected_location = detect_location_via_ip()
 
         if detected_location:
@@ -170,12 +161,10 @@ def get_user_location():
                 'source': 'ip_detection'
             }
         else:
-            print("❌ Could not detect your location automatically.")
-            print("📝 Falling back to manual entry...")
+            # User will be prompted for manual entry
+            pass
 
     # User chose manual OR auto-detection failed
-    print("\n🌍 MANUAL LOCATION ENTRY")
-    print("=" * 40)
     return None  # Will trigger manual input in main()
 
 
