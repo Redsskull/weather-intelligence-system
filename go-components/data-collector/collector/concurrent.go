@@ -2,7 +2,7 @@ package collector
 
 import (
 	"log"
-	"time"
+	"sync"
 
 	"weather-collector/config"
 )
@@ -14,30 +14,59 @@ func CollectWeatherData(locations []Location) []WeatherResult {
 
 	log.Printf("Starting weather collection for %d locations...", len(locations))
 	if cfg.Logging.EnableDebug {
-		log.Printf("Using collection delay: %v (rate limiting)", cfg.Performance.CollectionDelay)
+		log.Printf("Using max workers: %d", cfg.Performance.MaxWorkers)
 	}
 
-	var results []WeatherResult
+	// Create job and result channels
+	jobs := make(chan job, len(locations))
+	results := make(chan workerResult, len(locations))
 
-	// Sequential collection with rate limiting
-	// TODO: Make this concurrent with goroutines using cfg.Performance.MaxWorkers
-	for i, location := range locations {
-		log.Printf("Fetching weather for location %d/%d: %s", i+1, len(locations), location.Name)
+	// Start worker pool
+	var wg sync.WaitGroup
+	for w := 0; w < cfg.Performance.MaxWorkers; w++ {
+		wg.Add(1)
+		go worker(jobs, results, &wg)
+	}
 
-		// Add rate limiting delay between requests (except for first request)
-		if i > 0 {
-			time.Sleep(cfg.Performance.CollectionDelay)
+	// Send jobs to workers
+	go func() {
+		defer close(jobs)
+		for i, location := range locations {
+			jobs <- job{index: i, location: location}
 		}
+	}()
 
-		result := FetchWeatherForLocation(location)
-		results = append(results, result)
+	// Close results channel when all workers are done
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 
-		if result.Success {
-			log.Printf("✅ Success: %s - %.1f°C", location.Name, result.CurrentWeather.Temperature)
+	// Collect results
+	jobResults := make([]WeatherResult, len(locations))
+	completed := 0
+	for res := range results {
+		jobResults[res.index] = res.result
+		completed++
+
+		// Log the result
+		if res.result.Success {
+			log.Printf("✅ Success: %s - %.1f°C", res.result.Location.Name, res.result.CurrentWeather.Temperature)
 		} else {
-			log.Printf("❌ Failed: %s - %s", location.Name, result.Error)
+			log.Printf("❌ Failed: %s - %s", res.result.Location.Name, res.result.Error)
 		}
 	}
 
-	return results
+	log.Printf("Completed collection for %d/%d locations", completed, len(locations))
+	return jobResults
+}
+
+// worker processes jobs from the jobs channel and sends results to the results channel
+func worker(jobs <-chan job, results chan<- workerResult, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for job := range jobs {
+		result := FetchWeatherForLocation(job.location)
+		results <- workerResult{index: job.index, result: result}
+	}
 }

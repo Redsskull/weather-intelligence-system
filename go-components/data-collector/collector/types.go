@@ -9,11 +9,11 @@ type Location struct {
 
 // WeatherResult represents the collected weather data for a location
 type WeatherResult struct {
-	Location                 Location         `json:"location"`
-	CurrentWeather           WeatherPoint     `json:"current_weather"`
-	Forecast                 []WeatherPoint   `json:"forecast,omitempty"`
-	Success                  bool             `json:"success"`
-	Error                    string           `json:"error,omitempty"`
+	Location       Location       `json:"location"`
+	CurrentWeather WeatherPoint   `json:"current_weather"`
+	Forecast       []WeatherPoint `json:"forecast,omitempty"`
+	Success        bool           `json:"success"`
+	Error          string         `json:"error,omitempty"`
 }
 
 // WeatherPoint represents a single weather reading with timestamp
@@ -62,4 +62,16 @@ type APIResponse struct {
 			} `json:"data"`
 		} `json:"timeseries"`
 	} `json:"properties"`
+}
+
+// job represents a single location to process
+type job struct {
+	index    int
+	location Location
+}
+
+// workerResult represents the outcome of processing a location
+type workerResult struct {
+	index  int
+	result WeatherResult
 }
