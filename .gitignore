@@ -91,3 +91,6 @@ data/integration/
 config/secrets.json
 config/api_keys.json
 .env.local
+
+
+weather
