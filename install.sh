@@ -35,6 +35,197 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
+# Check Python version
+echo -e "${BLUE}🔍 Checking Python version...${NC}"
+PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Error: Could not determine Python version${NC}"
+    exit 1
+fi
+
+# Split the version into major and minor components
+IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+
+# Check for minimum supported version (Python 3.8+ recommended)
+if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
+    echo -e "${RED}❌ Error: Python version $PYTHON_VERSION is too old${NC}"
+    echo -e "${RED}This program requires Python 3.8 or higher${NC}"
+    echo ""
+    
+    # Detect OS and offer to install Python automatically
+    # Better OS detection
+    if [[ "$OSTYPE" == "darwin"* ]] || command -v brew >/dev/null 2>&1; then
+        # macOS with Homebrew
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via Homebrew? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via Homebrew...${NC}"
+            brew install python3
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                else
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Failed to install Python via Homebrew${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  macOS:  brew install python3${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
+        fi
+    elif command -v apt >/dev/null 2>&1 && [[ -f /etc/debian_version ]] || [[ -f /etc/lsb-release ]]; then
+        # Ubuntu/Debian
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via apt? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via apt...${NC}"
+            sudo apt update
+            sudo apt install -y python3 python3-pip
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                else
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Failed to install Python via apt${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
+        fi
+    elif command -v yum >/dev/null 2>&1 && [[ -f /etc/redhat-release ]]; then
+        # CentOS/RHEL
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via yum? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via yum...${NC}"
+            sudo yum install -y python3 python3-pip
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                else
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Failed to install Python via yum${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
+        fi
+    elif command -v dnf >/dev/null 2>&1 && [[ -f /etc/redhat-release ]]; then
+        # Fedora with dnf
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via dnf? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via dnf...${NC}"
+            sudo dnf install -y python3 python3-pip
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                else
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Failed to install Python via dnf${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  Fedora:  sudo dnf install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
+        fi
+    elif command -v zypper >/dev/null 2>&1 && [[ -f /etc/os-release ]] && grep -q "openSUSE\|SUSE" /etc/os-release; then
+        # openSUSE/SUSE
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via zypper? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via zypper...${NC}"
+            sudo zypper install -y python3 python3-pip
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                else
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Failed to install Python via zypper${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  openSUSE/SUSE:  sudo zypper install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
+        fi
+    else
+        # Generic case - no known package manager
+        echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+        echo -e "${YELLOW}  macOS:  brew install python3${NC}"
+        echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+        exit 1
+    fi
+    else
+        # Generic case - no known package manager
+        echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+        echo -e "${YELLOW}  macOS:  brew install python3${NC}"
+        echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✅ Python version $PYTHON_VERSION found${NC}"
+fi
+
 if ! command -v go &> /dev/null; then
     echo -e "${RED}❌ Error: Go is not installed${NC}"
     exit 1
@@ -141,6 +332,122 @@ WEATHER_SCRIPT_END
 
 chmod +x "$WEATHER_SCRIPT_PATH"
 echo -e "${GREEN}✅ Weather command installed${NC}"
+
+# Create the uninstall script
+echo -e "${YELLOW}🗑️  Creating uninstall script...${NC}"
+UNINSTALL_SCRIPT_PATH="$INSTALL_DIR/weather-uninstall"
+cat > "$UNINSTALL_SCRIPT_PATH" << 'UNINSTALL_SCRIPT_END'
+#!/bin/bash
+# Weather Intelligence System - Uninstaller
+# Removes all installed components of the Weather Intelligence System
+# This script is automatically generated by the installer
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}🌤️  Weather Intelligence System - Uninstaller${NC}"
+echo "=================================================="
+echo ""
+
+# Confirm before proceeding
+echo -e "${YELLOW}⚠️  Warning: This will completely remove the Weather Intelligence System${NC}"
+read -p "Are you sure you want to continue? (y/N): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${BLUE}Operation cancelled.${NC}"
+    exit 0
+fi
+echo ""
+
+# Define installation locations
+PROJECT_ROOT="$HOME/.local/share/weather-intelligence-system"
+INSTALL_DIR_CURRENT="$(dirname "$(readlink -f "$0")")"
+
+echo -e "${BLUE}📁 Project installation directory:${NC} $PROJECT_ROOT"
+
+# Check if installation exists
+if [ ! -d "$PROJECT_ROOT" ]; then
+    echo -e "${YELLOW}⚠️  Weather Intelligence System is not installed in the expected location.${NC}"
+    echo -e "${YELLOW}No installation found at: $PROJECT_ROOT${NC}"
+    exit 1
+fi
+
+# Remove installed binaries
+echo -e "${BLUE}🗑️  Removing installed binaries from $INSTALL_DIR_CURRENT...${NC}"
+
+# Remove the weather command script itself after showing confirmation
+if [ -f "$INSTALL_DIR_CURRENT/weather" ]; then
+    echo -e "${GREEN}✅ Removed:${NC} $INSTALL_DIR_CURRENT/weather"
+    rm "$INSTALL_DIR_CURRENT/weather"
+fi
+
+if [ -f "$INSTALL_DIR_CURRENT/weather-collector" ]; then
+    rm "$INSTALL_DIR_CURRENT/weather-collector"
+    echo -e "${GREEN}✅ Removed:${NC} $INSTALL_DIR_CURRENT/weather-collector"
+fi
+
+if [ -f "$INSTALL_DIR_CURRENT/weather-uninstall" ]; then
+    # Show message before removing the uninstall script itself
+    echo -e "${GREEN}✅ Removed:${NC} $INSTALL_DIR_CURRENT/weather-uninstall"
+    rm "$INSTALL_DIR_CURRENT/weather-uninstall"
+fi
+
+# Remove the project directory
+echo -e "${BLUE}🗑️  Removing project files...${NC}"
+rm -rf "$PROJECT_ROOT"
+echo -e "${GREEN}✅ Removed project directory:${NC} $PROJECT_ROOT"
+
+# Remove PATH modification from shell configuration
+echo -e "${BLUE}🔧 Checking shell configuration for PATH modifications...${NC}"
+
+# Array of possible shell configuration files
+SHELL_CONFIGS=("$HOME/.zprofile" "$HOME/.zshrc" "$HOME/.bash_profile" "$HOME/.bashrc" "$HOME/.profile")
+
+for config_file in "${SHELL_CONFIGS[@]}"; do
+    if [ -f "$config_file" ]; then
+        # Check if the config file contains Weather Intelligence System PATH modification
+        if grep -q "Added by Weather Intelligence System\|$INSTALL_DIR_CURRENT.*weather-intelligence" "$config_file"; then
+            echo -e "${BLUE}📝 Found Weather Intelligence System in:${NC} $config_file"
+            
+            # Create a backup
+            cp "$config_file" "$config_file.wis-backup"
+            echo -e "${GREEN}✅ Created backup:${NC} $config_file.wis-backup"
+            
+            # Remove the Weather Intelligence System related lines
+            sed -i.bak '/# Added by Weather Intelligence System/,+2d' "$config_file" 2>/dev/null || true
+            sed -i.bak '/export PATH.*\$PATH.*'"$INSTALL_DIR_CURRENT"'/!b;n;d' "$config_file" 2>/dev/null || true
+            
+            # Clean up the backup files created by sed
+            rm -f "$config_file.bak" 2>/dev/null || true
+            
+            # Remove any remaining empty lines that might have been left behind
+            sed -i.bak -e '/^$/N;/^\n$/D' "$config_file" 2>/dev/null || true
+            rm -f "$config_file.bak" 2>/dev/null || true
+            
+            echo -e "${GREEN}✅ Removed Weather Intelligence System configuration from:${NC} $config_file"
+        fi
+    fi
+done
+
+echo ""
+echo -e "${GREEN}🎉 Uninstallation completed successfully!${NC}"
+echo ""
+echo -e "${YELLOW}📝 Note: You may need to restart your terminal or run 'source' on your shell configuration${NC}"
+echo -e "${YELLOW}    file to fully remove the PATH modification from your current session.${NC}"
+echo ""
+echo -e "${BLUE}💡 Your shell configuration files were backed up with .wis-backup extension${NC}"
+echo -e "${BLUE}   in case you need to restore the changes manually.${NC}"
+
+UNINSTALL_SCRIPT_END
+
+chmod +x "$UNINSTALL_SCRIPT_PATH"
+echo -e "${GREEN}✅ Uninstall command installed${NC}"
 
 # Optionally add to shell configuration
 echo -e "${BLUE}🔧 Checking shell configuration...${NC}"

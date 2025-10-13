@@ -5,6 +5,7 @@ Main application file for weather data analysis and pattern recognition.
 This file must be named 'project.py' per CS50 requirements.
 """
 
+import sys
 from datetime import datetime
 # Import custom modules
 from utils.translations import translate_code
@@ -21,6 +22,20 @@ def main():
     Main function - orchestrates the weather intelligence system using Go data engine
     This is the entry point of the entire application.
     """
+    # Handle command line arguments
+    if len(sys.argv) > 1:
+        command = sys.argv[1].lower()
+        if command == "uninstall":
+            show_uninstall_instructions()
+            return
+        elif command in ["-h", "--help", "help"]:
+            show_help()
+            return
+        else:
+            print(f"Unknown command: {command}")
+            show_help()
+            return
+
     print("Weather Intelligence System v1.0")
     print("=" * 40)
 
@@ -254,6 +269,35 @@ def get_forecast_for_time(forecast_data, target_time):
             continue
 
     return closest_forecast
+
+
+def show_uninstall_instructions():
+    """Show instructions for uninstalling the Weather Intelligence System"""
+    print("To uninstall the Weather Intelligence System, run:")
+    print("  weather-uninstall")
+    print("")
+    print("This will remove all installed components including:")
+    print("  - The main application files")
+    print("  - Binary executables")
+    print("  - Configuration changes to your shell")
+    print("")
+    print("Note: You can also find the 'weather-uninstall' script in your PATH directory.")
+
+
+def show_help():
+    """Show help information for the weather command"""
+    print("Weather Intelligence System v1.0")
+    print("=" * 40)
+    print("Usage: weather [command]")
+    print("")
+    print("Commands:")
+    print("  (no command)    - Run the main weather intelligence system")
+    print("  uninstall       - Show instructions for uninstalling the system")
+    print("  -h, --help      - Show this help message")
+    print("")
+    print("Example:")
+    print("  weather          - Get current weather and analysis")
+    print("  weather uninstall - Show uninstall instructions")
 
 
 if __name__ == "__main__":
