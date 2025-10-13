@@ -63,18 +63,51 @@ if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" 
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo -e "${BLUE}🔄 Installing Python via Homebrew...${NC}"
             brew install python3
-            # Update PYTHON_VERSION after installation
-            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-            if [ $? -eq 0 ]; then
-                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
-                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
-                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+            
+            # After Homebrew installation, we need to ensure the new Python is in the PATH
+            # Homebrew on macOS might install to different locations depending on architecture
+            if [ -f "/opt/homebrew/bin/python3" ]; then
+                # Apple Silicon Mac
+                export PATH="/opt/homebrew/bin:$PATH"
+                export PATH="/opt/homebrew/sbin:$PATH"
+            elif [ -f "/usr/local/bin/python3" ]; then
+                # Intel Mac
+                export PATH="/usr/local/bin:$PATH"
+                export PATH="/usr/local/sbin:$PATH"
+            fi
+            
+            # Try to locate the python3 command in the updated PATH
+            NEW_PYTHON3_PATH=$(which python3 2>/dev/null)
+            echo -e "${BLUE}🔍 Found python3 at: $NEW_PYTHON3_PATH${NC}"
+            
+            # After installation and PATH update, verify python3 is available
+            if [ -x "$NEW_PYTHON3_PATH" ] && [ -n "$NEW_PYTHON3_PATH" ]; then
+                # Update PYTHON_VERSION after installation using the specific path
+                PYTHON_VERSION=$("$NEW_PYTHON3_PATH" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+                if [ $? -eq 0 ] && [ -n "$PYTHON_VERSION" ]; then
+                    IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                    if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                        echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                        echo -e "${BLUE}💡 Note: Python is now available as 'python3' command${NC}"
+                    else
+                        echo -e "${RED}❌ Installation completed but Python version is still too old ($PYTHON_VERSION)${NC}"
+                        exit 1
+                    fi
                 else
-                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    echo -e "${RED}❌ Could not determine Python version after installation${NC}"
                     exit 1
                 fi
             else
-                echo -e "${RED}❌ Failed to install Python via Homebrew${NC}"
+                echo -e "${RED}❌ Failed to install Python via Homebrew or 'python3' command not accessible in PATH${NC}"
+                echo -e "${YELLOW}💡 Current PATH: $PATH${NC}"
+                echo -e "${YELLOW}💡 Available python3: $(ls -la /opt/homebrew/bin/python3 /usr/local/bin/python3 2>/dev/null || echo 'Not found in standard locations')${NC}"
+                echo -e "${YELLOW}💡 Manual fix: Add Homebrew to PATH with:${NC}"
+                if [ -d "/opt/homebrew/bin" ]; then
+                    echo -e "${YELLOW}   export PATH=\"/opt/homebrew/bin:\$PATH\"${NC}"
+                fi
+                if [ -d "/usr/local/bin" ]; then
+                    echo -e "${YELLOW}   export PATH=\"/usr/local/bin:\$PATH\"${NC}"
+                fi
                 exit 1
             fi
         else
