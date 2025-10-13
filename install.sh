@@ -147,14 +147,36 @@ echo -e "${BLUE}🔧 Checking shell configuration...${NC}"
 SHELL_RC=""
 
 # Determine the appropriate shell configuration file
-if [ -n "$ZSH_VERSION" ] && [ -f "$HOME/.zshrc" ]; then
-    SHELL_RC="$HOME/.zshrc"
-elif [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then
-    SHELL_RC="$HOME/.bashrc"
-elif [ -f "$HOME/.bashrc" ]; then
-    SHELL_RC="$HOME/.bashrc"
-elif [ -f "$HOME/.profile" ]; then
-    SHELL_RC="$HOME/.profile"
+# Check for macOS and common shell configuration files
+if [ -n "$ZSH_VERSION" ]; then
+    # For zsh, check zprofile first (common on macOS), then zshrc
+    if [ -f "$HOME/.zprofile" ] && [ -w "$HOME/.zprofile" ]; then
+        SHELL_RC="$HOME/.zprofile"
+    elif [ -f "$HOME/.zshrc" ] && [ -w "$HOME/.zshrc" ]; then
+        SHELL_RC="$HOME/.zshrc"
+    fi
+elif [ -n "$BASH_VERSION" ]; then
+    # For bash on macOS, bash_profile is commonly used
+    if [ -f "$HOME/.bash_profile" ] && [ -w "$HOME/.bash_profile" ]; then
+        SHELL_RC="$HOME/.bash_profile"
+    elif [ -f "$HOME/.bashrc" ] && [ -w "$HOME/.bashrc" ]; then
+        SHELL_RC="$HOME/.bashrc"
+    elif [ -f "$HOME/.profile" ] && [ -w "$HOME/.profile" ]; then
+        SHELL_RC="$HOME/.profile"
+    fi
+else
+    # Fallback for other shells or if shell version isn't detected
+    if [ -f "$HOME/.zprofile" ] && [ -w "$HOME/.zprofile" ]; then
+        SHELL_RC="$HOME/.zprofile"
+    elif [ -f "$HOME/.zshrc" ] && [ -w "$HOME/.zshrc" ]; then
+        SHELL_RC="$HOME/.zshrc"
+    elif [ -f "$HOME/.bash_profile" ] && [ -w "$HOME/.bash_profile" ]; then
+        SHELL_RC="$HOME/.bash_profile"
+    elif [ -f "$HOME/.bashrc" ] && [ -w "$HOME/.bashrc" ]; then
+        SHELL_RC="$HOME/.bashrc"
+    elif [ -f "$HOME/.profile" ] && [ -w "$HOME/.profile" ]; then
+        SHELL_RC="$HOME/.profile"
+    fi
 fi
 
 # Only add to PATH if not already in PATH
@@ -177,6 +199,19 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     fi
 else
     echo -e "${GREEN}✅ $INSTALL_DIR is already in PATH${NC}"
+    if [ -n "$SHELL_RC" ]; then
+        if ! grep -q "export PATH=.*$INSTALL_DIR" "$SHELL_RC" 2>/dev/null; then
+            # Even if the directory is in PATH, add it to shell config for persistence
+            if [ -w "$SHELL_RC" ]; then
+                echo "" >> "$SHELL_RC"
+                echo "# Added by Weather Intelligence System" >> "$SHELL_RC"
+                echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_RC"
+                echo -e "${GREEN}✅ Ensured $INSTALL_DIR is permanently in PATH in $SHELL_RC${NC}"
+            else
+                echo -e "${YELLOW}ℹ️  Directory is in PATH but not in shell config (may not persist after restart)${NC}"
+            fi
+        fi
+    fi
 fi
 
 # Test the installation
