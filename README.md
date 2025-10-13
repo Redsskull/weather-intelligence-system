@@ -8,16 +8,21 @@ The Weather Intelligence System can be installed using one of the following meth
 
 ### Quick Install (Recommended)
 
-You can install the Weather Intelligence System directly using curl or wget:
+You can install the Weather Intelligence System directly using curl, wget, or PowerShell:
 
-**Using curl:**
+**On Linux/macOS using curl:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/install.sh | bash
 ```
 
-**Using wget:**
+**On Linux/macOS using wget:**
 ```bash
 wget -qO- https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/install.sh | bash
+```
+
+**On Windows using PowerShell:**
+```powershell
+iex (iwr https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/install.ps1 -UseBasicParsing)
 ```
 
 ### Manual Installation
@@ -52,18 +57,32 @@ Our installation script includes several safety measures to protect your system:
 ## Prerequisites
 
 The installation requires:
-- Python 3.x
-- Go
-- Git
-- A Unix-like operating system (Linux/macOS)
+- **On Linux/macOS:**
+  - Python 3.x
+  - Go
+  - Git
+  - A Unix-like operating system (Linux/macOS)
+- **On Windows:**
+  - PowerShell 5.1 or later
+  - Python 3.x
+  - Go
+  - Git
 
 ## What the Installation Does
 
+**On Linux/macOS:**
 1. Clones the repository to `~/.local/share/weather-intelligence-system`
 2. Builds the Go components
 3. Sets up a Python virtual environment
 4. Installs the `weather` and `weather-collector` binaries to `~/.local/bin` (or `~/bin` if `~/.local/bin` doesn't exist)
 5. Optionally adds the installation directory to your PATH in your shell configuration
+
+**On Windows:**
+1. Downloads the repository to `$env:LOCALAPPDATA\weather-intelligence-system`
+2. Builds the Go components
+3. Sets up a Python virtual environment
+4. Installs the `weather` command as a PowerShell script and batch file to `$env:LOCALAPPDATA\Programs\weather-intelligence-system`
+5. Automatically adds the installation directory to your user PATH environment variable
 
 ## Post-Installation
 
