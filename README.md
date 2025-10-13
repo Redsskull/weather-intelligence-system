@@ -86,7 +86,11 @@ The installation requires:
 
 ## Post-Installation
 
+**On Linux/macOS:**
 After installation, you may need to restart your terminal or run `source ~/.bashrc` (or the appropriate shell configuration file) to update your PATH.
+
+**On Windows:**
+The installer automatically updates your user PATH environment variable. You may need to restart your PowerShell session to use the `weather` command directly.
 
 Then you can run:
 ```bash
@@ -95,7 +99,18 @@ weather
 
 ## Uninstall
 
+**On Linux/macOS:**
 To uninstall, simply remove:
 - The installation directory: `~/.local/share/weather-intelligence-system`
 - The installed binaries: `~/.local/bin/weather` and `~/.local/bin/weather-collector` (or in `~/bin` if applicable)
 - The PATH entry from your shell configuration file
+
+**On Windows:**
+Run the uninstall command:
+```powershell
+weather uninstall
+```
+Or manually remove:
+- The installation directory: `$env:LOCALAPPDATA\weather-intelligence-system`
+- The installed binaries: `$env:LOCALAPPDATA\Programs\weather-intelligence-system`
+- The PATH entry from your user environment variables
