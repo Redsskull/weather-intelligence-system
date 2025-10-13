@@ -1,159 +1,127 @@
 #!/bin/bash
-# Comprehensive installation script for Weather Intelligence System
-# Can be run directly with: curl -fsSL https://raw.githubusercontent.com/Redsskull/weather-intelligence-system/main/install.sh | bash
-# Or: wget -qO- https://raw.githubusercontent.com/Redsskull/weather-intelligence-system/main/install.sh | bash
+# Weather Intelligence System - Safe Distribution Installer
+# Designed for safe installation via curl or wget
+# Usage: curl -fsSL https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/install.sh | bash
+#        wget -qO- https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/install.sh | bash
 
-set -e  # Exit on any error
+set -e
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Weather Intelligence System - One-Click Installation${NC}"
-echo "===================================================="
+echo -e "${GREEN}🌤️  Weather Intelligence System - Safe Installer${NC}"
+echo "=================================================="
+echo ""
 
-# Create a temporary directory to work in
-TEMP_DIR=$(mktemp -d)
-echo "Using temporary directory: $TEMP_DIR"
-
-# Clean up the temporary directory on exit
-trap 'rm -rf "$TEMP_DIR"' EXIT
-
-# Detect OS
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS="linux"
-    INSTALL_DIR="$HOME/.local/bin"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    OS="macos"
-    INSTALL_DIR="$HOME/.local/bin"
-elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-    OS="windows"
-    echo -e "${RED}Windows installation via web script is not supported${NC}"
-    echo "Please download and run install.ps1 manually"
-    exit 1
-else
-    echo -e "${RED}Unsupported OS: $OSTYPE${NC}"
-    exit 1
-fi
-
-echo "Detected OS: $OS"
-echo "Installation directory: $INSTALL_DIR"
-
-# Install Git if not available
-if ! command -v git &> /dev/null; then
-    echo -e "${YELLOW}Installing Git...${NC}"
-    if command -v apt-get &> /dev/null; then
-        sudo apt-get update && sudo apt-get install -y git
-    elif command -v yum &> /dev/null; then
-        sudo yum install -y git
-    elif command -v brew &> /dev/null; then
-        brew install git
-    else
-        echo -e "${RED}Git is not installed and could not be automatically installed.${NC}"
-        echo "Please install Git and try again."
+# Check if running with sudo (not recommended)
+if [ "$EUID" -eq 0 ]; then
+    echo -e "${YELLOW}⚠️  Warning: Running as root. This is not recommended.${NC}"
+    echo -e "${YELLOW}It's better to run this script as a regular user.${NC}"
+    read -p "Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
 fi
 
-# Clone the repository to the temporary directory
-echo -e "${YELLOW}Cloning Weather Intelligence System...${NC}"
-git clone https://github.com/yourusername/weather-intelligence-system.git "$TEMP_DIR/weather-intelligence-system"
+# Check prerequisites
+echo -e "${BLUE}🔍 Checking prerequisites...${NC}"
+if ! command -v python3 &> /dev/null; then
+    echo -e "${RED}❌ Error: Python3 is not installed${NC}"
+    exit 1
+fi
 
-PROJECT_ROOT="$TEMP_DIR/weather-intelligence-system"
+if ! command -v go &> /dev/null; then
+    echo -e "${RED}❌ Error: Go is not installed${NC}"
+    exit 1
+fi
 
-# Navigate to project and run the installation
+if ! command -v git &> /dev/null; then
+    echo -e "${RED}❌ Error: Git is not installed${NC}"
+    exit 1
+fi
+
+# Determine safe installation directory
+echo -e "${BLUE}📁 Determining safe installation directory...${NC}"
+
+# Check for user-writable directories in PATH, with preference to user directories
+INSTALL_DIR=""
+for dir in "$HOME/.local/bin" "$HOME/bin" "/tmp/weather-bin"; do
+    if [ -d "$dir" ] && [ -w "$dir" ]; then
+        INSTALL_DIR="$dir"
+        echo -e "${GREEN}✅ Found writable directory:${NC} $INSTALL_DIR"
+        break
+    elif [ -w "$(dirname "$dir")" ]; then
+        mkdir -p "$dir"
+        INSTALL_DIR="$dir"
+        echo -e "${GREEN}✅ Created directory:${NC} $INSTALL_DIR"
+        break
+    fi
+done
+
+# If no suitable directory found, create ~/bin
+if [ -z "$INSTALL_DIR" ]; then
+    INSTALL_DIR="$HOME/bin"
+    mkdir -p "$INSTALL_DIR"
+    echo -e "${GREEN}✅ Created directory:${NC} $INSTALL_DIR"
+fi
+
+# Determine project installation location
+PROJECT_ROOT="$HOME/.local/share/weather-intelligence-system"
+echo -e "${BLUE}📦 Project installation directory:${NC} $PROJECT_ROOT"
+
+# Clean up any existing installation
+if [ -d "$PROJECT_ROOT" ]; then
+    echo -e "${YELLOW}🗑️  Removing existing installation...${NC}"
+    rm -rf "$PROJECT_ROOT"
+fi
+
+# Clone the repository
+echo -e "${BLUE}📥 Cloning repository...${NC}"
+mkdir -p "$(dirname "$PROJECT_ROOT")"
+git clone https://github.com/redsskull/weather-intelligence-system.git "$PROJECT_ROOT"
+
+# Build Go component
+echo -e "${YELLOW}🔨 Building Go data collector...${NC}"
+cd "$PROJECT_ROOT/go-components/data-collector"
+go build -o weather-collector .
 cd "$PROJECT_ROOT"
 
-# Check if we're in the right directory
-if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    echo -e "${RED}Error: project.py not found in $PROJECT_ROOT${NC}"
-    exit 1
+# Setup Python virtual environment
+echo -e "${YELLOW}🐍 Setting up Python virtual environment...${NC}"
+python3 -m venv "$PROJECT_ROOT/venv"
+source "$PROJECT_ROOT/venv/bin/activate"
+pip install --upgrade pip
+
+if [ -f "$PROJECT_ROOT/requirements.txt" ]; then
+    echo -e "${YELLOW}📦 Installing Python dependencies...${NC}"
+    pip install -r "$PROJECT_ROOT/requirements.txt"
 fi
 
-# Check if Python is installed
-if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}Error: Python3 is not installed.${NC}"
-    exit 1
-fi
+# Copy Go binary to install directory
+echo -e "${YELLOW}🚚 Installing Go binary...${NC}"
+cp "$PROJECT_ROOT/go-components/data-collector/weather-collector" "$INSTALL_DIR/"
+chmod +x "$INSTALL_DIR/weather-collector"
+echo -e "${GREEN}✅ Go binary installed${NC}"
 
-# Check if Go is installed
-if ! command -v go &> /dev/null; then
-    echo -e "${RED}Error: Go is not installed.${NC}"
-    exit 1
-fi
-
-# Create installation directory
-mkdir -p "$INSTALL_DIR"
-
-# Build the Go component first
-echo -e "${YELLOW}Building Go components...${NC}"
-if [ -d "$PROJECT_ROOT/go-components/data-collector" ]; then
-    cd "$PROJECT_ROOT/go-components/data-collector"
-    go build -o weather-collector .
-    cd "$PROJECT_ROOT"
-    # Copy the binary to project root for the launcher to find
-    cp "$PROJECT_ROOT/go-components/data-collector/weather-collector" "$PROJECT_ROOT/" 2>/dev/null || true
-else
-    echo -e "${YELLOW}Go components directory not found, skipping Go build${NC}"
-fi
-
-# Check if virtual environment exists, if not create and set it up
-if [ ! -d "$PROJECT_ROOT/venv" ]; then
-    echo -e "${YELLOW}Setting up Python virtual environment...${NC}"
-    python3 -m venv "$PROJECT_ROOT/venv"
-
-    # Activate virtual environment and install requirements
-    source "$PROJECT_ROOT/venv/bin/activate"
-    pip install --upgrade pip
-    if [ -f "$PROJECT_ROOT/requirements.txt" ]; then
-        pip install -r "$PROJECT_ROOT/requirements.txt"
-        echo -e "${GREEN}✓ Python dependencies installed${NC}"
-    else
-        echo -e "${RED}Error: requirements.txt not found${NC}"
-        exit 1
-    fi
-else
-    echo -e "${GREEN}✓ Virtual environment already exists${NC}"
-    source "$PROJECT_ROOT/venv/bin/activate"
-fi
-
-# Create a platform-appropriate launcher script
-echo -e "${YELLOW}Creating 'weather' command...${NC}"
-
-# For Linux and macOS
-cat > "$INSTALL_DIR/weather" << 'EOF'
+# Create the weather command script
+echo -e "${YELLOW}🚀 Creating weather command...${NC}"
+WEATHER_SCRIPT_PATH="$INSTALL_DIR/weather"
+cat > "$WEATHER_SCRIPT_PATH" << 'WEATHER_SCRIPT_END'
 #!/bin/bash
-# Weather Intelligence System launcher
+# Weather Intelligence System Command
+# This script is automatically generated by the installer
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../weather-intelligence-system"
+# Set the project root to the standard location
+PROJECT_ROOT="$HOME/.local/share/weather-intelligence-system"
 
-# First try the parent directory of the script (if installed in standard location)
+# Check if project was found
 if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    # If not found, use the script's directory as project root (for direct usage from project directory)
-    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-fi
-
-# Second, try relative to the installation script location
-if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    PROJECT_ROOT="$(dirname "$(dirname "$(readlink -f "$0")")")/weather-intelligence-system"
-fi
-
-# Third, try default project location
-if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    PROJECT_ROOT="$HOME/projects/weather-intelligence-system"
-fi
-
-# Fourth, try in the same directory as the script
-if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    PROJECT_ROOT="$(dirname "$0")"
-fi
-
-if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    echo "Error: Weather Intelligence System not found!"
+    echo "❌ Error: Weather Intelligence System not found!"
     echo "Expected location: $PROJECT_ROOT"
     exit 1
 fi
@@ -164,57 +132,69 @@ cd "$PROJECT_ROOT"
 if [ -f "venv/bin/activate" ]; then
     source venv/bin/activate
 else
-    echo "Error: Python virtual environment not found in $PROJECT_ROOT!"
+    echo "❌ Error: Python virtual environment not found in $PROJECT_ROOT!"
     exit 1
 fi
 
 python project.py "$@"
-EOF
+WEATHER_SCRIPT_END
 
-chmod +x "$INSTALL_DIR/weather"
+chmod +x "$WEATHER_SCRIPT_PATH"
+echo -e "${GREEN}✅ Weather command installed${NC}"
 
-# Check if $INSTALL_DIR is in PATH and add it automatically if not
-if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo -e "${YELLOW}Adding $INSTALL_DIR to your PATH automatically...${NC}"
+# Optionally add to shell configuration
+echo -e "${BLUE}🔧 Checking shell configuration...${NC}"
+SHELL_RC=""
 
-    # Update PATH for current session
-    export PATH="$PATH:$INSTALL_DIR"
-
-    # Detect shell and add to appropriate config file
-    if [[ "$SHELL" == *"/zsh"* ]]; then
-        # For zsh users
-        SHELL_CONFIG="$HOME/.zshrc"
-        echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_CONFIG"
-        echo -e "${GREEN}✓ Added to $SHELL_CONFIG${NC}"
-    elif [[ "$SHELL" == *"/bash"* ]]; then
-        # For bash users
-        SHELL_CONFIG="$HOME/.bashrc"
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # For macOS, also check .bash_profile
-            SHELL_CONFIG="$HOME/.bash_profile"
-        fi
-        echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_CONFIG"
-        echo -e "${GREEN}✓ Added to $SHELL_CONFIG${NC}"
-    else
-        # Default to .bashrc if we can't determine the shell
-        SHELL_CONFIG="$HOME/.bashrc"
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            SHELL_CONFIG="$HOME/.bash_profile"
-        fi
-        echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_CONFIG"
-        echo -e "${GREEN}✓ Added to $SHELL_CONFIG${NC}"
-    fi
-
-    # Source the updated config for the current session
-    source "$SHELL_CONFIG" 2>/dev/null || true
-
-    echo -e "${GREEN}✓ PATH updated automatically!${NC}"
-    echo -e "${GREEN}You can now run 'weather' from anywhere in your terminal.${NC}"
-else
-    echo -e "${GREEN}✓ 'weather' command installed successfully!${NC}"
-    echo -e "${GREEN}You can now run 'weather' from anywhere in your terminal.${NC}"
+# Determine the appropriate shell configuration file
+if [ -n "$ZSH_VERSION" ] && [ -f "$HOME/.zshrc" ]; then
+    SHELL_RC="$HOME/.zshrc"
+elif [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then
+    SHELL_RC="$HOME/.bashrc"
+elif [ -f "$HOME/.bashrc" ]; then
+    SHELL_RC="$HOME/.bashrc"
+elif [ -f "$HOME/.profile" ]; then
+    SHELL_RC="$HOME/.profile"
 fi
 
-echo ""
-echo -e "${GREEN}🎉 Installation complete!${NC}"
-echo -e "${GREEN}Run 'weather' to start using Weather Intelligence System!${NC}"
+# Only add to PATH if not already in PATH
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+    if [ -n "$SHELL_RC" ] && [ -w "$SHELL_RC" ]; then
+        if ! grep -q "export PATH=.*$INSTALL_DIR" "$SHELL_RC" 2>/dev/null; then
+            echo "" >> "$SHELL_RC"
+            echo "# Added by Weather Intelligence System" >> "$SHELL_RC"
+            echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_RC"
+            echo -e "${GREEN}✅ Added $INSTALL_DIR to PATH in $SHELL_RC${NC}"
+            echo -e "${YELLOW}📝 Note: Restart your terminal or run 'source $SHELL_RC' to update PATH${NC}"
+        else
+            echo -e "${GREEN}✅ PATH already configured in $SHELL_RC${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Could not update shell configuration automatically${NC}"
+        echo "Add this to your shell configuration file to use 'weather' command directly:"
+        echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
+        echo "Then run 'source' on that configuration file or restart your terminal"
+    fi
+else
+    echo -e "${GREEN}✅ $INSTALL_DIR is already in PATH${NC}"
+fi
+
+# Test the installation
+echo -e "${YELLOW}🧪 Testing installation...${NC}"
+if [ -f "$WEATHER_SCRIPT_PATH" ] && [ -x "$WEATHER_SCRIPT_PATH" ]; then
+    echo -e "${GREEN}✅ Installation files look good!${NC}"
+    echo ""
+    echo -e "${GREEN}🎉 Installation completed successfully!${NC}"
+    echo -e "${BLUE}💡 Usage:${NC}"
+    echo "  weather          # Run the weather command (after PATH update)"
+    echo "  $WEATHER_SCRIPT_PATH  # Run directly without PATH update"
+    echo ""
+    echo -e "${YELLOW}📝 Next steps:${NC}"
+    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+        echo "1. Update your PATH as described above"
+    fi
+    echo "2. Run 'weather' to use the Weather Intelligence System"
+else
+    echo -e "${RED}❌ Installation may have failed${NC}"
+    exit 1
+fi

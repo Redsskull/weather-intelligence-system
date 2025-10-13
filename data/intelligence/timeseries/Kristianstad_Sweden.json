@@ -356,11 +356,63 @@
       "precipitation_mm": 0,
       "precipitation_probability": 0,
       "symbol_code": "clearsky_day"
+    },
+    {
+      "timestamp": "2025-10-13T08:00:00Z",
+      "saved_at": "2025-10-13T10:36:19.185959",
+      "temperature": 4.7,
+      "pressure": 1026.6,
+      "humidity": 78,
+      "wind_speed": 3.1,
+      "wind_direction": 314.7,
+      "cloud_cover": 25.1,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fair_day"
+    },
+    {
+      "timestamp": "2025-10-13T08:00:00Z",
+      "saved_at": "2025-10-13T11:05:05.842384",
+      "temperature": 4.7,
+      "pressure": 1026.6,
+      "humidity": 78,
+      "wind_speed": 3.1,
+      "wind_direction": 314.7,
+      "cloud_cover": 25.1,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fair_day"
+    },
+    {
+      "timestamp": "2025-10-13T09:00:00Z",
+      "saved_at": "2025-10-13T11:29:36.497714",
+      "temperature": 7.4,
+      "pressure": 1026.4,
+      "humidity": 67.8,
+      "wind_speed": 3.3,
+      "wind_direction": 317.7,
+      "cloud_cover": 10.3,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "clearsky_day"
+    },
+    {
+      "timestamp": "2025-10-13T09:00:00Z",
+      "saved_at": "2025-10-13T11:44:58.322971",
+      "temperature": 7.4,
+      "pressure": 1026.4,
+      "humidity": 67.8,
+      "wind_speed": 3.3,
+      "wind_direction": 317.7,
+      "cloud_cover": 10.3,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "clearsky_day"
     }
   ],
   "metadata": {
-    "total_readings": 27,
+    "total_readings": 31,
     "first_reading": "2025-10-10T08:14:03.755776",
-    "last_reading": "2025-10-13T09:35:53.960237"
+    "last_reading": "2025-10-13T11:44:58.322971"
   }
 }
