@@ -36,7 +36,7 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Check Python version
-echo -e "${BLUE}🔍 Checking Python version...${NC}"
+echo -e "${BLUE}🔍 Checking Python version from default python3...${NC}"
 PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
 
 if [ $? -ne 0 ]; then
@@ -49,13 +49,43 @@ IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
 
 # Check for minimum supported version (Python 3.8+ recommended)
 if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
-    echo -e "${RED}❌ Error: Python version $PYTHON_VERSION is too old${NC}"
-    echo -e "${RED}This program requires Python 3.8 or higher${NC}"
-    echo ""
+    echo -e "${YELLOW}⚠️  Found Python version $PYTHON_VERSION which is too old${NC}"
+    echo -e "${BLUE}🔍 Checking for newer Python installations in common paths...${NC}"
     
-    # Detect OS and offer to install Python automatically
-    # Better OS detection
-    if [[ "$OSTYPE" == "darwin"* ]] || command -v brew >/dev/null 2>&1; then
+    # Check common Homebrew Python locations on macOS
+    NEWER_PYTHON_PATH=""
+    for py_path in "/opt/homebrew/bin/python3" "/usr/local/bin/python3" "$HOME/.brew/bin/python3"; do
+        if [ -x "$py_path" ]; then
+            TEMP_VERSION=$("$py_path" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r TEMP_MAJOR TEMP_MINOR <<< "$TEMP_VERSION"
+                if [ "$TEMP_MAJOR" -ge 3 ] && [ "$TEMP_MINOR" -ge 8 ]; then
+                    NEWER_PYTHON_PATH="$py_path"
+                    PYTHON_VERSION="$TEMP_VERSION"
+                    PYTHON_MAJOR="$TEMP_MAJOR"
+                    PYTHON_MINOR="$TEMP_MINOR"
+                    echo -e "${GREEN}✅ Found compatible Python at: $NEWER_PYTHON_PATH (version: $PYTHON_VERSION)${NC}"
+                    break
+                fi
+            fi
+        fi
+    done
+    
+    # If we found a compatible Python, use it and continue
+    if [ -n "$NEWER_PYTHON_PATH" ]; then
+        echo -e "${BLUE}💡 Using Python from: $NEWER_PYTHON_PATH${NC}"
+        # Update PATH to ensure this Python is used for the rest of the installation
+        export PATH="$(dirname "$NEWER_PYTHON_PATH"):$PATH"
+        # We found a newer Python, so continue with the installation
+    else
+        # No suitable Python found in alternate locations, offer to install automatically
+        echo -e "${RED}❌ Error: Python version $PYTHON_VERSION is too old${NC}"
+        echo -e "${RED}This program requires Python 3.8 or higher${NC}"
+        echo ""
+        
+        # Detect OS and offer to install Python automatically
+        # Better OS detection
+        if [[ "$OSTYPE" == "darwin"* ]] || command -v brew >/dev/null 2>&1; then
         # macOS with Homebrew
         echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
         read -p "Would you like to install Python via Homebrew? (y/N): " -n 1 -r
