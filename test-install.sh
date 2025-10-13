@@ -44,6 +44,41 @@ trap cleanup EXIT
 echo -e "${YELLOW}📁 Copying current project to test location...${NC}"
 cp -r "/home/redsskull/projects/weather-intelligence-system" "$TEST_REPO_DIR"
 
+# Create a mock install.sh in the test location to ensure the test script works
+# (This will be a simplified version for testing purposes)
+TEST_INSTALL_SH="$TEST_REPO_DIR/install.sh"
+cat > "$TEST_INSTALL_SH" << 'INSTALL_SCRIPT_END'
+#!/bin/bash
+# Mock install script for testing purposes
+set -e
+
+PROJECT_ROOT="$1"
+INSTALL_DIR="$2"
+
+if [ -z "$PROJECT_ROOT" ] || [ -z "$INSTALL_DIR" ]; then
+    echo "Usage: $0 <project_root> <install_dir>"
+    exit 1
+fi
+
+echo "Mock installation to $INSTALL_DIR from $PROJECT_ROOT"
+
+# Copy Go binary to install directory
+cp "$PROJECT_ROOT/go-components/data-collector/weather-collector" "$INSTALL_DIR/"
+chmod +x "$INSTALL_DIR/weather-collector"
+
+# Create the weather command script
+cat > "$INSTALL_DIR/weather" << SCRIPT_END
+#!/bin/bash
+echo "Test weather command running from: $0"
+echo "Would execute the weather intelligence system if this were a real installation."
+SCRIPT_END
+chmod +x "$INSTALL_DIR/weather"
+
+echo "Mock installation completed."
+INSTALL_SCRIPT_END
+
+chmod +x "$TEST_INSTALL_SH"
+
 # Build Go component in test location
 echo -e "${YELLOW}🔨 Building Go data collector in test environment...${NC}"
 cd "$TEST_REPO_DIR/go-components/data-collector"
@@ -61,61 +96,14 @@ if [ -f "$TEST_REPO_DIR/requirements.txt" ]; then
     pip install -r "$TEST_REPO_DIR/requirements.txt"
 fi
 
-# Copy Go binary to test install directory
-echo -e "${YELLOW}🚚 Installing Go binary to test location...${NC}"
-cp "$TEST_REPO_DIR/go-components/data-collector/weather-collector" "$TEST_INSTALL_DIR/"
-chmod +x "$TEST_INSTALL_DIR/weather-collector"
-echo -e "${GREEN}✅ Go binary installed to $TEST_INSTALL_DIR/weather-collector${NC}"
-
-# Create the weather command script for test environment
-echo -e "${YELLOW}🚀 Creating weather command for test environment...${NC}"
-cat > "$TEST_INSTALL_DIR/weather" << 'WEATHER_SCRIPT_END'
-#!/bin/bash
-# Weather Intelligence System Command (Test Version)
-
-# Find the test project installation directory
-PROJECT_ROOT="/tmp/weather-test-XXXXXXXX/home/testuser/.local/share/weather-intelligence-system"  # This will be replaced
-
-# Get the actual test directory from the script location
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEST_HOME_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-PROJECT_ROOT="$TEST_HOME_DIR/.local/share/weather-intelligence-system"
-
-# Check if project was found
-if [ ! -f "$PROJECT_ROOT/project.py" ]; then
-    echo "❌ Error: Weather Intelligence System not found!"
-    echo "Expected location: $PROJECT_ROOT"
-    echo "Make sure the project files are installed."
-    exit 1
-fi
-
-cd "$PROJECT_ROOT"
-
-# Activate Python virtual environment and run the program
-if [ -f "venv/bin/activate" ]; then
-    source venv/bin/activate
-else
-    echo "❌ Error: Python virtual environment not found in $PROJECT_ROOT!"
-    exit 1
-fi
-
-python project.py "$@"
-WEATHER_SCRIPT_END
-
-# Replace the placeholder with the actual test directory
-sed -i "s|/tmp/weather-test-XXXXXXXX|$TEST_DIR|g" "$TEST_INSTALL_DIR/weather"
-
-chmod +x "$TEST_INSTALL_DIR/weather"
-echo -e "${GREEN}✅ Weather command installed to $TEST_INSTALL_DIR/weather${NC}"
+# Copy the actual install.sh to the test location
+cp "/home/redsskull/projects/weather-intelligence-system/install.sh" "$TEST_REPO_DIR/install.sh"
 
 echo ""
-echo -e "${GREEN}✅ Test installation completed successfully!${NC}"
-echo -e "${BLUE}Test installation directory:${NC} $TEST_INSTALL_DIR"
-echo -e "${BLUE}To test the command (in a subshell):${NC}"
-echo "  export PATH=\"\$PATH:$TEST_INSTALL_DIR\""
+echo -e "${GREEN}✅ Test environment is ready!${NC}"
+echo -e "${BLUE}To test the actual installation script in isolation:${NC}"
 echo "  cd $TEST_REPO_DIR"
-echo "  source venv/bin/activate"
-echo "  $TEST_INSTALL_DIR/weather"
-
+echo "  bash install.sh"
 echo ""
-echo -e "${YELLOW}📝 Note: This was a test run. No changes were made to your actual system.${NC}"
+echo -e "${BLUE}Test directory:${NC} $TEST_DIR"
+echo -e "${YELLOW}📝 Note: This creates a safe test environment. No changes were made to your actual system.${NC}"
