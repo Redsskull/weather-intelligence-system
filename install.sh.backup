@@ -30,84 +30,141 @@ fi
 
 # Check prerequisites
 echo -e "${BLUE}🔍 Checking prerequisites...${NC}"
-
-# Check for Python, with version checking and automatic installation
-echo -e "${BLUE}🔍 Checking for Python...${NC}"
-
-PYTHON_CMD=""
-PYTHON_VERSION=""
-
-# First, try to find any available Python3
-if command -v python3 &> /dev/null; then
-    PYTHON_CMD="python3"
-    PYTHON_VERSION=$($PYTHON_CMD -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+if ! command -v python3 &> /dev/null; then
+    echo -e "${RED}❌ Error: Python3 is not installed${NC}"
+    exit 1
 fi
 
-# If python3 is not available or version check failed, check for python
-if [ -z "$PYTHON_VERSION" ] && command -v python &> /dev/null; then
-    PYTHON_CMD="python"
-    PYTHON_VERSION=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+# Check Python version
+echo -e "${BLUE}🔍 Checking Python version from default python3...${NC}"
+PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Error: Could not determine Python version${NC}"
+    exit 1
 fi
 
-# If no Python found at all, offer to install
-if [ -z "$PYTHON_CMD" ] || [ -z "$PYTHON_VERSION" ]; then
-    echo -e "${YELLOW}🐍 Python not found. We can install it for you.${NC}"
+# Split the version into major and minor components
+IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+
+# Check for minimum supported version (Python 3.8+ recommended)
+if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
+    echo -e "${YELLOW}⚠️  Found Python version $PYTHON_VERSION which is too old${NC}"
+    echo -e "${BLUE}🔍 Checking for newer Python installations in common paths...${NC}"
     
-    # Detect OS and offer to install Python automatically
-    if [[ "$OSTYPE" == "darwin"* ]] || command -v brew >/dev/null 2>&1; then
+    # Check common Homebrew Python locations on macOS
+    NEWER_PYTHON_PATH=""
+    for py_path in "/opt/homebrew/bin/python3" "/usr/local/bin/python3" "$HOME/.brew/bin/python3"; do
+        if [ -x "$py_path" ]; then
+            TEMP_VERSION=$("$py_path" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r TEMP_MAJOR TEMP_MINOR <<< "$TEMP_VERSION"
+                if [ "$TEMP_MAJOR" -ge 3 ] && [ "$TEMP_MINOR" -ge 8 ]; then
+                    NEWER_PYTHON_PATH="$py_path"
+                    PYTHON_VERSION="$TEMP_VERSION"
+                    PYTHON_MAJOR="$TEMP_MAJOR"
+                    PYTHON_MINOR="$TEMP_MINOR"
+                    echo -e "${GREEN}✅ Found compatible Python at: $NEWER_PYTHON_PATH (version: $PYTHON_VERSION)${NC}"
+                    break
+                fi
+            fi
+        fi
+    done
+    
+    # If we found a compatible Python, use it and continue
+    if [ -n "$NEWER_PYTHON_PATH" ]; then
+        echo -e "${BLUE}💡 Using Python from: $NEWER_PYTHON_PATH${NC}"
+        # Update PATH to ensure this Python is used for the rest of the installation
+        export PATH="$(dirname "$NEWER_PYTHON_PATH"):$PATH"
+        # We found a newer Python, so continue with the installation
+    else
+        # No suitable Python found in alternate locations, offer to install automatically
+        echo -e "${RED}❌ Error: Python version $PYTHON_VERSION is too old${NC}"
+        echo -e "${RED}This program requires Python 3.8 or higher${NC}"
+        echo ""
+        
+        # Detect OS and offer to install Python automatically
+        # Better OS detection
+        if [[ "$OSTYPE" == "darwin"* ]] || command -v brew >/dev/null 2>&1; then
         # macOS with Homebrew
-        echo -e "${YELLOW}🐍 Installing Python via Homebrew...${NC}"
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
         read -p "Would you like to install Python via Homebrew? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            if ! command -v brew >/dev/null 2>&1; then
-                echo -e "${RED}❌ Homebrew is not installed${NC}"
-                echo -e "${YELLOW}Please install Homebrew first: https://brew.sh/${NC}"
-                exit 1
-            fi
-            
+            echo -e "${BLUE}🔄 Installing Python via Homebrew...${NC}"
             brew install python3
-            # Ensure PATH is updated to include Homebrew installations
-            if [ -d "/opt/homebrew/bin" ]; then
+            
+            # After Homebrew installation, we need to ensure the new Python is in the PATH
+            # Homebrew on macOS might install to different locations depending on architecture
+            if [ -f "/opt/homebrew/bin/python3" ]; then
+                # Apple Silicon Mac
                 export PATH="/opt/homebrew/bin:$PATH"
-            elif [ -d "/usr/local/bin" ]; then
+                export PATH="/opt/homebrew/sbin:$PATH"
+            elif [ -f "/usr/local/bin/python3" ]; then
+                # Intel Mac
                 export PATH="/usr/local/bin:$PATH"
+                export PATH="/usr/local/sbin:$PATH"
             fi
             
-            # Check if python3 is now available
-            if command -v python3 &> /dev/null; then
-                PYTHON_CMD="python3"
-                PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-                if [ -n "$PYTHON_VERSION" ]; then
-                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+            # Try to locate the python3 command in the updated PATH
+            NEW_PYTHON3_PATH=$(which python3 2>/dev/null)
+            echo -e "${BLUE}🔍 Found python3 at: $NEW_PYTHON3_PATH${NC}"
+            
+            # After installation and PATH update, verify python3 is available
+            if [ -x "$NEW_PYTHON3_PATH" ] && [ -n "$NEW_PYTHON3_PATH" ]; then
+                # Update PYTHON_VERSION after installation using the specific path
+                PYTHON_VERSION=$("$NEW_PYTHON3_PATH" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+                if [ $? -eq 0 ] && [ -n "$PYTHON_VERSION" ]; then
+                    IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                    if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                        echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                        echo -e "${BLUE}💡 Note: Python is now available as 'python3' command${NC}"
+                    else
+                        echo -e "${RED}❌ Installation completed but Python version is still too old ($PYTHON_VERSION)${NC}"
+                        exit 1
+                    fi
                 else
                     echo -e "${RED}❌ Could not determine Python version after installation${NC}"
                     exit 1
                 fi
             else
-                echo -e "${RED}❌ Failed to install Python via Homebrew${NC}"
+                echo -e "${RED}❌ Failed to install Python via Homebrew or 'python3' command not accessible in PATH${NC}"
+                echo -e "${YELLOW}💡 Current PATH: $PATH${NC}"
+                echo -e "${YELLOW}💡 Available python3: $(ls -la /opt/homebrew/bin/python3 /usr/local/bin/python3 2>/dev/null || echo 'Not found in standard locations')${NC}"
+                echo -e "${YELLOW}💡 Manual fix: Add Homebrew to PATH with:${NC}"
+                if [ -d "/opt/homebrew/bin" ]; then
+                    echo -e "${YELLOW}   export PATH=\"/opt/homebrew/bin:\$PATH\"${NC}"
+                fi
+                if [ -d "/usr/local/bin" ]; then
+                    echo -e "${YELLOW}   export PATH=\"/usr/local/bin:\$PATH\"${NC}"
+                fi
                 exit 1
             fi
         else
-            echo -e "${RED}❌ Python is required to run this installer${NC}"
-            echo -e "${YELLOW}Please install Python 3.8+ and run this script again${NC}"
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  macOS:  brew install python3${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
             exit 1
         fi
-    elif command -v apt >/dev/null 2>&1; then
+    elif command -v apt >/dev/null 2>&1 && [[ -f /etc/debian_version ]] || [[ -f /etc/lsb-release ]]; then
         # Ubuntu/Debian
-        echo -e "${YELLOW}🐍 Installing Python via apt...${NC}"
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
         read -p "Would you like to install Python via apt? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via apt...${NC}"
             sudo apt update
             sudo apt install -y python3 python3-pip
-            if command -v python3 &> /dev/null; then
-                PYTHON_CMD="python3"
-                PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-                if [ -n "$PYTHON_VERSION" ]; then
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
                     echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
                 else
-                    echo -e "${RED}❌ Could not determine Python version after installation${NC}"
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
                     exit 1
                 fi
             else
@@ -115,24 +172,28 @@ if [ -z "$PYTHON_CMD" ] || [ -z "$PYTHON_VERSION" ]; then
                 exit 1
             fi
         else
-            echo -e "${RED}❌ Python is required to run this installer${NC}"
-            echo -e "${YELLOW}Please install Python 3.8+ and run this script again${NC}"
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
             exit 1
         fi
-    elif command -v yum >/dev/null 2>&1; then
+    elif command -v yum >/dev/null 2>&1 && [[ -f /etc/redhat-release ]]; then
         # CentOS/RHEL
-        echo -e "${YELLOW}🐍 Installing Python via yum...${NC}"
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
         read -p "Would you like to install Python via yum? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via yum...${NC}"
             sudo yum install -y python3 python3-pip
-            if command -v python3 &> /dev/null; then
-                PYTHON_CMD="python3"
-                PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-                if [ -n "$PYTHON_VERSION" ]; then
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
                     echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
                 else
-                    echo -e "${RED}❌ Could not determine Python version after installation${NC}"
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
                     exit 1
                 fi
             else
@@ -140,112 +201,101 @@ if [ -z "$PYTHON_CMD" ] || [ -z "$PYTHON_VERSION" ]; then
                 exit 1
             fi
         else
-            echo -e "${RED}❌ Python is required to run this installer${NC}"
-            echo -e "${YELLOW}Please install Python 3.8+ and run this script again${NC}"
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
             exit 1
         fi
-    else
-        echo -e "${RED}❌ Python is required to run this installer${NC}"
-        echo -e "${YELLOW}Please install Python 3.8+ manually and run this script again${NC}"
-        echo -e "${YELLOW}For macOS: brew install python3${NC}"
-        echo -e "${YELLOW}For Ubuntu/Debian: sudo apt install python3${NC}"
-        echo -e "${YELLOW}For CentOS/RHEL: sudo yum install python3${NC}"
-        exit 1
-    fi
-fi
-
-# At this point we should have Python available, now check the version
-if [ -n "$PYTHON_VERSION" ]; then
-    # Split the version into major and minor components
-    IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
-
-    # Check for minimum supported version (Python 3.8+ recommended)
-    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
-        echo -e "${YELLOW}⚠️  Found Python version $PYTHON_VERSION which is too old${NC}"
-        echo -e "${YELLOW}This program requires Python 3.8 or higher${NC}"
-        
-        # Check for newer Python in common locations (especially useful on macOS with Homebrew)
-        NEWER_PYTHON_PATH=""
-        for py_path in "/opt/homebrew/bin/python3" "/usr/local/bin/python3" "$HOME/.brew/bin/python3"; do
-            if [ -x "$py_path" ]; then
-                TEMP_VERSION=$("$py_path" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-                if [ $? -eq 0 ]; then
-                    IFS='.' read -r TEMP_MAJOR TEMP_MINOR <<< "$TEMP_VERSION"
-                    if [ "$TEMP_MAJOR" -ge 3 ] && [ "$TEMP_MINOR" -ge 8 ]; then
-                        NEWER_PYTHON_PATH="$py_path"
-                        PYTHON_CMD="$py_path"
-                        PYTHON_VERSION="$TEMP_VERSION"
-                        echo -e "${GREEN}✅ Found compatible Python at: $NEWER_PYTHON_PATH (version: $PYTHON_VERSION)${NC}"
-                        break
-                    fi
-                fi
-            fi
-        done
-        
-        # If we still don't have a compatible Python, offer to install
-        if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
-            echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
-            
-            if [[ "$OSTYPE" == "darwin"* ]] || command -v brew >/dev/null 2>&1; then
-                # macOS with Homebrew
-                read -p "Would you like to install Python via Homebrew? (y/N): " -n 1 -r
-                echo
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
-                    brew install python3
-                    # Update PATH for Apple Silicon or Intel Macs
-                    if [ -d "/opt/homebrew/bin" ]; then
-                        export PATH="/opt/homebrew/bin:$PATH"
-                    elif [ -d "/usr/local/bin" ]; then
-                        export PATH="/usr/local/bin:$PATH"
-                    fi
-                    
-                    # Recheck Python after installation
-                    PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-                    if [ $? -eq 0 ]; then
-                        IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
-                        if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
-                            PYTHON_CMD="python3"
-                            echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
-                        else
-                            echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
-                            exit 1
-                        fi
-                    else
-                        echo -e "${RED}❌ Failed to install Python via Homebrew${NC}"
-                        exit 1
-                    fi
+    elif command -v dnf >/dev/null 2>&1 && [[ -f /etc/redhat-release ]]; then
+        # Fedora with dnf
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via dnf? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via dnf...${NC}"
+            sudo dnf install -y python3 python3-pip
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
                 else
-                    echo -e "${RED}❌ Python 3.8+ is required to run this installer${NC}"
-                    echo -e "${YELLOW}Please install Python 3.8+ and run this script again${NC}"
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
                     exit 1
                 fi
             else
-                # For other systems, provide manual installation instructions
-                echo -e "${RED}❌ Python 3.8+ is required to run this installer${NC}"
-                echo -e "${YELLOW}Please install Python 3.8+ manually and run this script again${NC}"
+                echo -e "${RED}❌ Failed to install Python via dnf${NC}"
                 exit 1
             fi
         else
-            # Found a compatible Python in alternate location, update PATH
-            export PATH="$(dirname "$NEWER_PYTHON_PATH"):$PATH"
-            echo -e "${BLUE}💡 Using Python from: $NEWER_PYTHON_PATH${NC}"
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  Fedora:  sudo dnf install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
         fi
+    elif command -v zypper >/dev/null 2>&1 && [[ -f /etc/os-release ]] && grep -q "openSUSE\|SUSE" /etc/os-release; then
+        # openSUSE/SUSE
+        echo -e "${YELLOW}🐍 We can automatically install a newer Python version for you.${NC}"
+        read -p "Would you like to install Python via zypper? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}🔄 Installing Python via zypper...${NC}"
+            sudo zypper install -y python3 python3-pip
+            # Update PYTHON_VERSION after installation
+            PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+            if [ $? -eq 0 ]; then
+                IFS='.' read -r PYTHON_MAJOR PYTHON_MINOR <<< "$PYTHON_VERSION"
+                if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+                    echo -e "${GREEN}✅ Successfully installed Python $PYTHON_VERSION${NC}"
+                else
+                    echo -e "${RED}❌ Installation completed but Python version is still too old${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Failed to install Python via zypper${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+            echo -e "${YELLOW}  openSUSE/SUSE:  sudo zypper install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+            echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+            exit 1
+        fi
+    else
+        # Generic case - no known package manager
+        echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+        echo -e "${YELLOW}  macOS:  brew install python3${NC}"
+        echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+        exit 1
     fi
+    else
+        # Generic case - no known package manager
+        echo -e "${YELLOW}💡 To upgrade Python, try one of these methods:${NC}"
+        echo -e "${YELLOW}  macOS:  brew install python3${NC}"
+        echo -e "${YELLOW}  Ubuntu/Debian:  sudo apt update && sudo apt install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  CentOS/RHEL:  sudo yum install python3 python3-pip${NC}"
+        echo -e "${YELLOW}  Or download from: https://www.python.org/downloads/${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✅ Python version $PYTHON_VERSION found${NC}"
 fi
 
-echo -e "${GREEN}✅ Python $PYTHON_VERSION found and meets requirements${NC}"
-
-# Check for Go
 if ! command -v go &> /dev/null; then
     echo -e "${RED}❌ Error: Go is not installed${NC}"
-    echo -e "${YELLOW}Please install Go (https://golang.org/doc/install) and run this script again${NC}"
     exit 1
 fi
 
-# Check for Git
 if ! command -v git &> /dev/null; then
     echo -e "${RED}❌ Error: Git is not installed${NC}"
-    echo -e "${YELLOW}Please install Git and run this script again${NC}"
     exit 1
 fi
 
@@ -297,7 +347,7 @@ cd "$PROJECT_ROOT"
 
 # Setup Python virtual environment
 echo -e "${YELLOW}🐍 Setting up Python virtual environment...${NC}"
-$PYTHON_CMD -m venv "$PROJECT_ROOT/venv"
+python3 -m venv "$PROJECT_ROOT/venv"
 source "$PROJECT_ROOT/venv/bin/activate"
 pip install --upgrade pip
 
@@ -549,7 +599,6 @@ if [ -f "$WEATHER_SCRIPT_PATH" ] && [ -x "$WEATHER_SCRIPT_PATH" ]; then
         echo "1. Update your PATH as described above"
     fi
     echo "2. Run 'weather' to use the Weather Intelligence System"
-    echo "3. Run 'weather uninstall' to remove the system when needed"
 else
     echo -e "${RED}❌ Installation may have failed${NC}"
     exit 1
