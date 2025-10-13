@@ -96,8 +96,39 @@ def translate_code(code, code_type):
     Returns:
         str: Human-readable translation
     """
+    # Handle None or empty code values
+    if not code:
+        return "🌤️ Unknown"
+    
     translation_map = TRANSLATION_MAPS.get(code_type, {})
-    return translation_map.get(code, f"❓ {code}")
+    result = translation_map.get(code)
+    
+    # If not found in the map, provide a smart fallback based on code_type
+    if result is None:
+        if code_type == 'weather_symbol':
+            # For weather symbols, try to infer from partial matches
+            if 'clear' in code.lower():
+                return '☀️ Clear'
+            elif 'cloud' in code.lower():
+                return '☁️ Cloudy'
+            elif 'rain' in code.lower():
+                return '🌧️ Rain'
+            elif 'snow' in code.lower():
+                return '❄️ Snow'
+            elif 'storm' in code.lower():
+                return '⛈️ Storm'
+            elif 'fog' in code.lower() or 'mist' in code.lower():
+                return '🌫️ Fog'
+            else:
+                return "🌤️ Unknown"
+        elif code_type == 'condition':
+            # For conditions, return a generic description
+            return "🌡️ Condition"
+        else:
+            # For unknown code types, return a generic fallback
+            return "🌤️ Unknown"
+    
+    return result
 
 
 
