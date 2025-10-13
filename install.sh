@@ -467,35 +467,35 @@ echo -e "${BLUE}🔧 Checking shell configuration...${NC}"
 SHELL_RC=""
 
 # Determine the appropriate shell configuration file
-# Check for macOS and common shell configuration files
-if [ -n "$ZSH_VERSION" ]; then
-    # For zsh, check zprofile first (common on macOS), then zshrc
-    if [ -f "$HOME/.zprofile" ] && [ -w "$HOME/.zprofile" ]; then
-        SHELL_RC="$HOME/.zprofile"
-    elif [ -f "$HOME/.zshrc" ] && [ -w "$HOME/.zshrc" ]; then
-        SHELL_RC="$HOME/.zshrc"
-    fi
-elif [ -n "$BASH_VERSION" ]; then
-    # For bash on macOS, bash_profile is commonly used
-    if [ -f "$HOME/.bash_profile" ] && [ -w "$HOME/.bash_profile" ]; then
-        SHELL_RC="$HOME/.bash_profile"
-    elif [ -f "$HOME/.bashrc" ] && [ -w "$HOME/.bashrc" ]; then
-        SHELL_RC="$HOME/.bashrc"
-    elif [ -f "$HOME/.profile" ] && [ -w "$HOME/.profile" ]; then
-        SHELL_RC="$HOME/.profile"
-    fi
+# On macOS with zsh, prioritize .zprofile as it's loaded before .zshrc for environment variables
+if [ -f "$HOME/.zprofile" ]; then
+    SHELL_RC="$HOME/.zprofile"
+elif [ -n "$ZSH_VERSION" ] && [ -f "$HOME/.zshrc" ]; then
+    SHELL_RC="$HOME/.zshrc"
+elif [ -f "$HOME/.bash_profile" ]; then
+    SHELL_RC="$HOME/.bash_profile"
+elif [ -f "$HOME/.bashrc" ]; then
+    SHELL_RC="$HOME/.bashrc"
+elif [ -f "$HOME/.profile" ]; then
+    SHELL_RC="$HOME/.profile"
 else
-    # Fallback for other shells or if shell version isn't detected
-    if [ -f "$HOME/.zprofile" ] && [ -w "$HOME/.zprofile" ]; then
-        SHELL_RC="$HOME/.zprofile"
-    elif [ -f "$HOME/.zshrc" ] && [ -w "$HOME/.zshrc" ]; then
+    # Create .zprofile for macOS, since it's the preferred location for PATH variables
+    SHELL_RC="$HOME/.zprofile"
+    touch "$SHELL_RC"
+    echo -e "${GREEN}✅ Created shell configuration file:${NC} $SHELL_RC"
+fi
+
+# Check if the file is writable
+if [ ! -w "$SHELL_RC" ]; then
+    echo -e "${YELLOW}⚠️  Shell configuration file is not writable: $SHELL_RC${NC}"
+    echo -e "${YELLOW}   This may require running with different permissions${NC}"
+    # If the primary file isn't writable, try alternatives
+    if [[ "$SHELL_RC" == *".zprofile"* ]] && [ -w "$HOME/.zshrc" ]; then
         SHELL_RC="$HOME/.zshrc"
-    elif [ -f "$HOME/.bash_profile" ] && [ -w "$HOME/.bash_profile" ]; then
-        SHELL_RC="$HOME/.bash_profile"
-    elif [ -f "$HOME/.bashrc" ] && [ -w "$HOME/.bashrc" ]; then
+        echo -e "${BLUE}📝 Using $SHELL_RC instead${NC}"
+    elif [[ "$SHELL_RC" == *".bash_profile"* ]] && [ -w "$HOME/.bashrc" ]; then
         SHELL_RC="$HOME/.bashrc"
-    elif [ -f "$HOME/.profile" ] && [ -w "$HOME/.profile" ]; then
-        SHELL_RC="$HOME/.profile"
+        echo -e "${BLUE}📝 Using $SHELL_RC instead${NC}"
     fi
 fi
 
@@ -507,7 +507,17 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
             echo "# Added by Weather Intelligence System" >> "$SHELL_RC"
             echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_RC"
             echo -e "${GREEN}✅ Added $INSTALL_DIR to PATH in $SHELL_RC${NC}"
-            echo -e "${YELLOW}📝 Note: Restart your terminal or run 'source $SHELL_RC' to update PATH${NC}"
+            
+            # Ask user if they want to source the changes immediately
+            echo -e "${BLUE}🔄 The installer can automatically apply these changes to your current session.${NC}"
+            read -p "Apply PATH changes now? (y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                source "$SHELL_RC" 2>/dev/null || true
+                echo -e "${GREEN}✅ PATH changes applied. You can now run 'weather' command.${NC}"
+            else
+                echo -e "${YELLOW}📝 You will need to restart your terminal or run 'source $SHELL_RC' later${NC}"
+            fi
         else
             echo -e "${GREEN}✅ PATH already configured in $SHELL_RC${NC}"
         fi
@@ -527,6 +537,17 @@ else
                 echo "# Added by Weather Intelligence System" >> "$SHELL_RC"
                 echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_RC"
                 echo -e "${GREEN}✅ Ensured $INSTALL_DIR is permanently in PATH in $SHELL_RC${NC}"
+                
+                # Ask user if they want to source the changes immediately
+                echo -e "${BLUE}🔄 The installer can automatically apply these changes to your current session.${NC}"
+                read -p "Apply PATH changes now? (y/N): " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    source "$SHELL_RC" 2>/dev/null || true
+                    echo -e "${GREEN}✅ PATH changes applied. You can now run 'weather' command.${NC}"
+                else
+                    echo -e "${YELLOW}📝 You will need to restart your terminal or run 'source $SHELL_RC' later${NC}"
+                fi
             else
                 echo -e "${YELLOW}ℹ️  Directory is in PATH but not in shell config (may not persist after restart)${NC}"
             fi
