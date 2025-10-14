@@ -74,6 +74,7 @@ rm -rf "$HOME/.weather-intel"
 rm -f "$HOME/.local/bin/weather"
 rm -f "$HOME/.local/bin/weather-uninstall"
 echo "Uninstallation complete!"
+EOF
 chmod +x "$HOME/.local/bin/weather-uninstall"
 
 # Attempt to automatically add PATH to the appropriate shell profile
