@@ -146,7 +146,7 @@ echo "🗑️  To uninstall: weather-uninstall"
 if [ -z "$SHELL_PROFILE" ]; then
     echo "🔄 If command not found, add to your shell profile:"
     echo 'export PATH="$HOME/.local/bin:$PATH"'
-    
+
     # Detect the shell and suggest the appropriate profile file
     if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ]; then
         echo "For zsh (default on macOS): echo 'export PATH=\\\"\\$HOME/.local/bin:\\$PATH\\\"' >> ~/.zprofile"
