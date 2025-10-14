@@ -43,22 +43,16 @@ Invoke-WebRequest -Uri "$repoUrl/requirements.txt" -OutFile $requirementsPath
 $utilsDir = Join-Path $installDir "utils"
 New-Item -ItemType Directory -Path $utilsDir -Force
 
-# Download utils files if they exist
+# Download utils files
 $utilsBaseUrl = "$repoUrl/utils"
-try {
-    Invoke-WebRequest -Uri "$utilsBaseUrl/__init__.py" -OutFile (Join-Path $utilsDir "__init__.py") -ErrorAction Stop
-} catch {
-    Write-Host "Info: utils/__init__.py not found, skipping..." -ForegroundColor Yellow
-}
-try {
-    Invoke-WebRequest -Uri "$utilsBaseUrl/data_processor.py" -OutFile (Join-Path $utilsDir "data_processor.py") -ErrorAction Stop
-} catch {
-    Write-Host "Info: utils/data_processor.py not found, skipping..." -ForegroundColor Yellow
-}
-try {
-    Invoke-WebRequest -Uri "$utilsBaseUrl/file_handler.py" -OutFile (Join-Path $utilsDir "file_handler.py") -ErrorAction Stop
-} catch {
-    Write-Host "Info: utils/file_handler.py not found, skipping..." -ForegroundColor Yellow
+$utilsFiles = @("__init__.py", "analyzer.py", "collection.py", "detection.py", "errors.py", "forecast.py", "geocoding.py", "intelligence_persistence.py", "translations.py")
+
+foreach ($file in $utilsFiles) {
+    try {
+        Invoke-WebRequest -Uri "$utilsBaseUrl/$file" -OutFile (Join-Path $utilsDir $file) -ErrorAction Stop
+    } catch {
+        Write-Host "Info: utils/$file not found, skipping..." -ForegroundColor Yellow
+    }
 }
 
 New-Item -ItemType Directory -Path (Join-Path $installDir "data\cache") -Force

@@ -87,15 +87,15 @@ The installation requires:
 ## What the Installation Does
 
 **On Linux/macOS:**
-1. Creates the installation directory at `~/.weather-intel`
-2. Builds the Go components
+1. Creates the installation directory at `~/.weather-intel` containing all application files
+2. Downloads the source code, builds the Go components, and stores the compiled binaries in the installation directory
 3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
 4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
 5. The `weather` command runs the application from within the virtual environment
 
 **On Windows:**
-1. Creates the installation directory at `$env:USERPROFILE\.weather-intel`
-2. Builds the Go components
+1. Creates the installation directory at `$env:USERPROFILE\.weather-intel` containing all application files
+2. Downloads the source code, builds the Go components, and stores the compiled binaries in the installation directory
 3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
 4. Installs the `weather` command script to `$env:USERPROFILE\.local\bin`
 5. Automatically adds the installation directory to your user PATH environment variable
@@ -104,6 +104,20 @@ The installation requires:
 
 **On Linux/macOS:**
 After installation, you may need to restart your terminal or run `source ~/.bashrc` (or the appropriate shell configuration file) to update your PATH.
+
+## Installed Files
+
+The complete Weather Intelligence System is installed in a dedicated directory:
+- **On Linux/macOS:** `~/.weather-intel`
+- **On Windows:** `$env:USERPROFILE\.weather-intel`
+
+This directory contains:
+- All Python source files (project.py, requirements.txt, utils/, etc.)
+- Compiled Go binaries (data-collector, pattern-engine)
+- A dedicated Python virtual environment with all dependencies
+- Data cache and integration directories
+
+The system is completely self-contained in this directory and doesn't modify any system-wide directories.
 
 **On Windows:**
 The installer automatically updates your user PATH environment variable. You may need to restart your PowerShell session to use the `weather` command directly.

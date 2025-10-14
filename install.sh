@@ -20,12 +20,17 @@ echo "Downloading project files..."
 curl -fsSL "$REPO_URL/project.py" -o "$INSTALL_DIR/project.py"
 curl -fsSL "$REPO_URL/requirements.txt" -o "$INSTALL_DIR/requirements.txt"
 
-# Download utils files if they exist
+# Download utils directory files
 mkdir -p "$INSTALL_DIR/utils"
 curl -fsSL "$REPO_URL/utils/__init__.py" -o "$INSTALL_DIR/utils/__init__.py" 2>/dev/null || echo "Info: utils/__init__.py not found, skipping..."
-# Download other potential utils files
-curl -fsSL "$REPO_URL/utils/data_processor.py" -o "$INSTALL_DIR/utils/data_processor.py" 2>/dev/null || echo "Info: utils/data_processor.py not found, skipping..."
-curl -fsSL "$REPO_URL/utils/file_handler.py" -o "$INSTALL_DIR/utils/file_handler.py" 2>/dev/null || echo "Info: utils/file_handler.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/analyzer.py" -o "$INSTALL_DIR/utils/analyzer.py" 2>/dev/null || echo "Info: utils/analyzer.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/collection.py" -o "$INSTALL_DIR/utils/collection.py" 2>/dev/null || echo "Info: utils/collection.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/detection.py" -o "$INSTALL_DIR/utils/detection.py" 2>/dev/null || echo "Info: utils/detection.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/errors.py" -o "$INSTALL_DIR/utils/errors.py" 2>/dev/null || echo "Info: utils/errors.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/forecast.py" -o "$INSTALL_DIR/utils/forecast.py" 2>/dev/null || echo "Info: utils/forecast.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/geocoding.py" -o "$INSTALL_DIR/utils/geocoding.py" 2>/dev/null || echo "Info: utils/geocoding.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/intelligence_persistence.py" -o "$INSTALL_DIR/utils/intelligence_persistence.py" 2>/dev/null || echo "Info: utils/intelligence_persistence.py not found, skipping..."
+curl -fsSL "$REPO_URL/utils/translations.py" -o "$INSTALL_DIR/utils/translations.py" 2>/dev/null || echo "Info: utils/translations.py not found, skipping..."
 
 # Download data directory structure
 mkdir -p "$INSTALL_DIR/data/cache"
