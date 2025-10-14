@@ -29,21 +29,21 @@ def save_to_timeseries(weather_data, location_name, coordinates=None):
         str: Path to timeseries file, or None if failed
     """
     # Create intelligence data directories
-    os.makedirs('data/intelligence/timeseries', exist_ok=True)
-    os.makedirs('data/intelligence/baselines', exist_ok=True)
+    os.makedirs("data/intelligence/timeseries", exist_ok=True)
+    os.makedirs("data/intelligence/baselines", exist_ok=True)
 
     # Standardize location name for consistent file naming
-    safe_location = location_name.replace(' ', '_').replace(',', '').replace('/', '_')
+    safe_location = location_name.replace(" ", "_").replace(",", "").replace("/", "_")
     timeseries_file = f"data/intelligence/timeseries/{safe_location}.json"
 
     # Current timestamp
     current_time = datetime.now().isoformat()
-    weather_timestamp = weather_data.get('timestamp', current_time)
+    weather_timestamp = weather_data.get("timestamp", current_time)
 
     # Load existing timeseries or create new
     try:
         if os.path.exists(timeseries_file):
-            with open(timeseries_file, 'r') as f:
+            with open(timeseries_file, "r") as f:
                 timeseries = json.load(f)
         else:
             timeseries = {
@@ -54,31 +54,31 @@ def save_to_timeseries(weather_data, location_name, coordinates=None):
                 "metadata": {
                     "total_readings": 0,
                     "first_reading": current_time,
-                    "last_reading": current_time
-                }
+                    "last_reading": current_time,
+                },
             }
-    except Exception as e:
+    except Exception:
         timeseries = {
             "location": location_name,
             "coordinates": coordinates or {},
             "created_at": current_time,
             "readings": [],
-            "metadata": {"total_readings": 0}
+            "metadata": {"total_readings": 0},
         }
 
     # Add new reading
     reading = {
         "timestamp": weather_timestamp,
         "saved_at": current_time,
-        "temperature": weather_data.get('temperature'),
-        "pressure": weather_data.get('pressure'),
-        "humidity": weather_data.get('humidity'),
-        "wind_speed": weather_data.get('wind_speed'),
-        "wind_direction": weather_data.get('wind_direction'),
-        "cloud_cover": weather_data.get('cloud_cover'),
-        "precipitation_mm": weather_data.get('precipitation_mm', 0),
-        "precipitation_probability": weather_data.get('precipitation_probability', 0),
-        "symbol_code": weather_data.get('symbol_code', 'unknown')
+        "temperature": weather_data.get("temperature"),
+        "pressure": weather_data.get("pressure"),
+        "humidity": weather_data.get("humidity"),
+        "wind_speed": weather_data.get("wind_speed"),
+        "wind_direction": weather_data.get("wind_direction"),
+        "cloud_cover": weather_data.get("cloud_cover"),
+        "precipitation_mm": weather_data.get("precipitation_mm", 0),
+        "precipitation_probability": weather_data.get("precipitation_probability", 0),
+        "symbol_code": weather_data.get("symbol_code", "unknown"),
     }
 
     timeseries["readings"].append(reading)
@@ -96,10 +96,10 @@ def save_to_timeseries(weather_data, location_name, coordinates=None):
 
     # Save updated timeseries
     try:
-        with open(timeseries_file, 'w') as f:
+        with open(timeseries_file, "w") as f:
             json.dump(timeseries, f, indent=2)
         return timeseries_file
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -114,17 +114,17 @@ def load_location_timeseries(location_name):
     Returns:
         dict: Time-series data structure, or None if not found
     """
-    safe_location = location_name.replace(' ', '_').replace(',', '').replace('/', '_')
+    safe_location = location_name.replace(" ", "_").replace(",", "").replace("/", "_")
     timeseries_file = f"data/intelligence/timeseries/{safe_location}.json"
 
     if not os.path.exists(timeseries_file):
         return None
 
     try:
-        with open(timeseries_file, 'r') as f:
+        with open(timeseries_file, "r") as f:
             data = json.load(f)
         return data
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -149,7 +149,9 @@ def calculate_location_baseline(location_name, days_back=30):
 
     for reading in timeseries["readings"]:
         try:
-            reading_date = datetime.fromisoformat(reading["saved_at"].replace('Z', '+00:00'))
+            reading_date = datetime.fromisoformat(
+                reading["saved_at"].replace("Z", "+00:00")
+            )
             if reading_date >= cutoff_date:
                 recent_readings.append(reading)
         except:
@@ -164,11 +166,11 @@ def calculate_location_baseline(location_name, days_back=30):
         "calculation_date": datetime.now().isoformat(),
         "readings_used": len(recent_readings),
         "days_analyzed": days_back,
-        "statistics": {}
+        "statistics": {},
     }
 
     # Collect values for each metric
-    metrics = ['temperature', 'pressure', 'humidity', 'wind_speed', 'precipitation_mm']
+    metrics = ["temperature", "pressure", "humidity", "wind_speed", "precipitation_mm"]
 
     for metric in metrics:
         values = []
@@ -184,18 +186,18 @@ def calculate_location_baseline(location_name, days_back=30):
                 "min": min(values),
                 "max": max(values),
                 "std_dev": round(statistics.stdev(values) if len(values) > 1 else 0, 2),
-                "sample_size": len(values)
+                "sample_size": len(values),
             }
 
     # Save baseline for Go service consumption
-    safe_location = location_name.replace(' ', '_').replace(',', '').replace('/', '_')
+    safe_location = location_name.replace(" ", "_").replace(",", "").replace("/", "_")
     baseline_file = f"data/intelligence/baselines/{safe_location}_baseline.json"
 
     try:
-        with open(baseline_file, 'w') as f:
+        with open(baseline_file, "w") as f:
             json.dump(baseline, f, indent=2)
         return baseline
-    except Exception as e:
+    except Exception:
         return baseline  # Return data even if save failed
 
 
@@ -211,16 +213,16 @@ def prepare_go_analysis_input(location_names=None, max_days=7):
     Returns:
         str: Path to prepared analysis input file
     """
-    os.makedirs('data/intelligence/go_input', exist_ok=True)
+    os.makedirs("data/intelligence/go_input", exist_ok=True)
 
     # Get all locations if none specified
     if location_names is None:
-        timeseries_dir = 'data/intelligence/timeseries'
+        timeseries_dir = "data/intelligence/timeseries"
         if os.path.exists(timeseries_dir):
             location_files = glob.glob(f"{timeseries_dir}/*.json")
             location_names = []
             for file_path in location_files:
-                filename = os.path.basename(file_path).replace('.json', '')
+                filename = os.path.basename(file_path).replace(".json", "")
                 location_names.append(filename)
         else:
             location_names = []
@@ -230,7 +232,7 @@ def prepare_go_analysis_input(location_names=None, max_days=7):
         "created_at": datetime.now().isoformat(),
         "analysis_type": ["trends", "anomalies", "patterns"],
         "max_days_history": max_days,
-        "locations": []
+        "locations": [],
     }
 
     cutoff_date = datetime.now() - timedelta(days=max_days)
@@ -244,7 +246,9 @@ def prepare_go_analysis_input(location_names=None, max_days=7):
         recent_readings = []
         for reading in timeseries["readings"]:
             try:
-                reading_date = datetime.fromisoformat(reading["saved_at"].replace('Z', '+00:00'))
+                reading_date = datetime.fromisoformat(
+                    reading["saved_at"].replace("Z", "+00:00")
+                )
                 if reading_date >= cutoff_date:
                     recent_readings.append(reading)
             except:
@@ -257,9 +261,13 @@ def prepare_go_analysis_input(location_names=None, max_days=7):
                 "readings_count": len(recent_readings),
                 "readings": recent_readings,
                 "metadata": {
-                    "first_reading": recent_readings[0]["timestamp"] if recent_readings else None,
-                    "last_reading": recent_readings[-1]["timestamp"] if recent_readings else None
-                }
+                    "first_reading": (
+                        recent_readings[0]["timestamp"] if recent_readings else None
+                    ),
+                    "last_reading": (
+                        recent_readings[-1]["timestamp"] if recent_readings else None
+                    ),
+                },
             }
             analysis_input["locations"].append(location_data)
 
@@ -267,9 +275,9 @@ def prepare_go_analysis_input(location_names=None, max_days=7):
     input_file = f"data/intelligence/go_input/analysis_request_{analysis_input['request_id']}.json"
 
     try:
-        with open(input_file, 'w') as f:
+        with open(input_file, "w") as f:
             json.dump(analysis_input, f, indent=2)
 
         return input_file
-    except Exception as e:
+    except Exception:
         return None

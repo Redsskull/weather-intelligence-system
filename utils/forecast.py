@@ -1,6 +1,7 @@
 """
 Refactored version of display_weekly_forecast with better structure
 """
+
 from datetime import datetime, date, timedelta
 from collections import Counter, defaultdict
 
@@ -14,12 +15,12 @@ def display_weekly_forecast(go_weather_result):
     Args:
         go_weather_result (dict): Weather data from Go collector including forecast
     """
-    if not go_weather_result.get('forecast'):
+    if not go_weather_result.get("forecast"):
         print("   • No detailed forecast data available")
         return
 
     # Get forecast data
-    forecast_data = go_weather_result['forecast']
+    forecast_data = go_weather_result["forecast"]
     forecast_by_date = group_forecasts_by_date(forecast_data)
 
     # Get today's date and next 6 days
@@ -29,7 +30,7 @@ def display_weekly_forecast(go_weather_result):
     for i, date_key in enumerate(days_to_show):
         if date_key in forecast_by_date:
             day_forecasts = forecast_by_date[date_key]
-            day_obj = datetime.strptime(date_key, '%Y-%m-%d')
+            day_obj = datetime.strptime(date_key, "%Y-%m-%d")
 
             # Format day name (Today, Tomorrow, or abbreviated day)
             day_name = get_day_name(i, day_obj)
@@ -54,12 +55,14 @@ def group_forecasts_by_date(forecast_data):
     """
     forecast_by_date = {}
     for forecast_point in forecast_data:
-        timestamp_str = forecast_point.get('timestamp', '')
+        timestamp_str = forecast_point.get("timestamp", "")
         if timestamp_str:
             try:
                 # Handle ISO format: "2025-10-10T07:00:00Z"
-                forecast_time = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
-                date_key = forecast_time.strftime('%Y-%m-%d')
+                forecast_time = datetime.fromisoformat(
+                    timestamp_str.replace("Z", "+00:00")
+                )
+                date_key = forecast_time.strftime("%Y-%m-%d")
 
                 if date_key not in forecast_by_date:
                     forecast_by_date[date_key] = []
@@ -81,12 +84,12 @@ def get_seven_day_range():
     days_to_show = []
 
     # Add today
-    days_to_show.append(today.strftime('%Y-%m-%d'))
+    days_to_show.append(today.strftime("%Y-%m-%d"))
 
     # Add next 6 days
     for i in range(1, 7):
         future_date = today + timedelta(days=i)
-        days_to_show.append(future_date.strftime('%Y-%m-%d'))
+        days_to_show.append(future_date.strftime("%Y-%m-%d"))
 
     return days_to_show
 
@@ -107,7 +110,7 @@ def get_day_name(index, day_obj):
     elif index == 1:
         return "Tomorrow"
     else:
-        return day_obj.strftime('%a')  # Abbreviated day name
+        return day_obj.strftime("%a")  # Abbreviated day name
 
 
 def display_today_forecast(day_forecasts, day_name, day_obj):
@@ -119,19 +122,27 @@ def display_today_forecast(day_forecasts, day_name, day_obj):
         day_name (str): Name of the day (e.g. "Today")
         day_obj (datetime): Datetime object of the day
     """
-    temps = [f.get('temperature', 0) for f in day_forecasts if f.get('temperature') is not None]
+    temps = [
+        f.get("temperature", 0)
+        for f in day_forecasts
+        if f.get("temperature") is not None
+    ]
     if temps:
         min_temp = min(temps)
         max_temp = max(temps)
 
-        total_precip = sum(f.get('precipitation_mm', 0) for f in day_forecasts)
+        total_precip = sum(f.get("precipitation_mm", 0) for f in day_forecasts)
 
         # Display day header with min/max and precipitation info
         if total_precip > 0:
             precip_icon = "🌧️" if total_precip >= 1.0 else "🌦️"
-            print(f"   {day_name} ({day_obj.strftime('%b %d')}): {min_temp:.0f}° → {max_temp:.0f}° {precip_icon}{total_precip:.1f}mm")
+            print(
+                f"   {day_name} ({day_obj.strftime('%b %d')}): {min_temp:.0f}° → {max_temp:.0f}° {precip_icon}{total_precip:.1f}mm"
+            )
         else:
-            print(f"   {day_name} ({day_obj.strftime('%b %d')}): {min_temp:.0f}° → {max_temp:.0f}°")
+            print(
+                f"   {day_name} ({day_obj.strftime('%b %d')}): {min_temp:.0f}° → {max_temp:.0f}°"
+            )
 
         # Get hourly forecasts for today
         selected_forecasts = get_representative_hourly_forecasts(day_forecasts)
@@ -139,13 +150,17 @@ def display_today_forecast(day_forecasts, day_name, day_obj):
         # Display hourly forecast in a single horizontal line
         hourly_items = []
         for forecast in selected_forecasts[:5]:  # Take max 5
-            hour_time = datetime.fromisoformat(forecast['timestamp'].replace('Z', '+00:00'))
-            temp = forecast.get('temperature', 'N/A')
+            hour_time = datetime.fromisoformat(
+                forecast["timestamp"].replace("Z", "+00:00")
+            )
+            temp = forecast.get("temperature", "N/A")
             # Use the translation function which returns emoji + description
-            full_translation = translate_code(forecast.get('symbol_code', 'unknown'), 'weather_symbol')
+            full_translation = translate_code(
+                forecast.get("symbol_code", "unknown"), "weather_symbol"
+            )
             # Extract just the emoji (first part before space) if it contains a space
-            if ' ' in full_translation:
-                icon = full_translation.split(' ', 1)[0]  # Get part before first space
+            if " " in full_translation:
+                icon = full_translation.split(" ", 1)[0]  # Get part before first space
             else:
                 icon = full_translation  # Use as-is if no space
 
@@ -171,7 +186,7 @@ def get_representative_hourly_forecasts(day_forecasts):
     hourly_forecasts = defaultdict(list)
 
     for forecast in day_forecasts:
-        hour_time = datetime.fromisoformat(forecast['timestamp'].replace('Z', '+00:00'))
+        hour_time = datetime.fromisoformat(forecast["timestamp"].replace("Z", "+00:00"))
         hour = hour_time.hour
         hourly_forecasts[hour].append(forecast)
 
@@ -181,11 +196,11 @@ def get_representative_hourly_forecasts(day_forecasts):
 
     # Define time periods and select first forecast from each period if available
     time_periods = [
-        (range(6, 10), "early morning"),     # 6-9 AM
-        (range(10, 13), "late morning"),     # 10-12 AM
-        (range(13, 17), "afternoon"),        # 1-4 PM
-        (range(17, 21), "evening"),          # 5-8 PM
-        (range(21, 24), "night")             # 9-11 PM
+        (range(6, 10), "early morning"),  # 6-9 AM
+        (range(10, 13), "late morning"),  # 10-12 AM
+        (range(13, 17), "afternoon"),  # 1-4 PM
+        (range(17, 21), "evening"),  # 5-8 PM
+        (range(21, 24), "night"),  # 9-11 PM
     ]
 
     for period_range, period_name in time_periods:
@@ -200,7 +215,10 @@ def get_representative_hourly_forecasts(day_forecasts):
 
     # If we don't have 5 forecasts, supplement with evenly distributed ones
     if len(selected_forecasts) < 5 and len(day_forecasts) > 0:
-        all_hours_sorted = sorted(day_forecasts, key=lambda x: datetime.fromisoformat(x['timestamp'].replace('Z', '+00:00')))
+        all_hours_sorted = sorted(
+            day_forecasts,
+            key=lambda x: datetime.fromisoformat(x["timestamp"].replace("Z", "+00:00")),
+        )
         needed = 5 - len(selected_forecasts)
         stride = max(1, len(all_hours_sorted) // needed)
         for j in range(0, len(all_hours_sorted), stride):
@@ -221,36 +239,54 @@ def display_future_day_forecast(day_forecasts, day_name, day_obj):
         day_name (str): Name of the day (e.g. "Mon")
         day_obj (datetime): Datetime object of the day
     """
-    temps = [f.get('temperature', 0) for f in day_forecasts if f.get('temperature') is not None]
+    temps = [
+        f.get("temperature", 0)
+        for f in day_forecasts
+        if f.get("temperature") is not None
+    ]
     if temps:
         min_temp = min(temps)
         max_temp = max(temps)
 
         # Calculate total precipitation for the day
-        total_precip = sum(f.get('precipitation_mm', 0) for f in day_forecasts)
+        total_precip = sum(f.get("precipitation_mm", 0) for f in day_forecasts)
 
         # Find the most common weather condition for the day (excluding empty strings)
-        conditions = [f.get('symbol_code', 'unknown') for f in day_forecasts if f.get('symbol_code', '') != '']
+        conditions = [
+            f.get("symbol_code", "unknown")
+            for f in day_forecasts
+            if f.get("symbol_code", "") != ""
+        ]
         if conditions:
             # Find the most common condition
             condition_counts = Counter(conditions)
-            main_translation = translate_code(condition_counts.most_common(1)[0][0], 'weather_symbol')
+            main_translation = translate_code(
+                condition_counts.most_common(1)[0][0], "weather_symbol"
+            )
             # Get the emoji by splitting on space (emoji part before space)
-            if ' ' in main_translation:
-                main_icon = main_translation.split(' ', 1)[0]
+            if " " in main_translation:
+                main_icon = main_translation.split(" ", 1)[0]
             else:
                 main_icon = main_translation
 
             # Show precipitation amount with the precipitation icon OR just the weather icon
             if total_precip > 0:
                 precip_info = f" ({total_precip:.1f}mm)"
-                print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {main_icon}{precip_info}")
+                print(
+                    f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {main_icon}{precip_info}"
+                )
             else:
-                print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {main_icon}")
+                print(
+                    f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {main_icon}"
+                )
         else:
             # No conditions available, just show temps and any precipitation
             if total_precip > 0:
                 precip_icon = "🌧️" if total_precip >= 1.0 else "🌦️"
-                print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {precip_icon} ({total_precip:.1f}mm)")
+                print(
+                    f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}° {precip_icon} ({total_precip:.1f}mm)"
+                )
             else:
-                print(f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}°")
+                print(
+                    f"   {day_name} {day_obj.strftime('%b %d')}: {max_temp:.0f}°/{min_temp:.0f}°"
+                )

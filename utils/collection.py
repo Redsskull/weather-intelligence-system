@@ -3,7 +3,6 @@ collects data from Go and loads it back to python using json!
 I'm very proud of this one.
 """
 
-
 import os
 import json
 import subprocess
@@ -14,19 +13,6 @@ from utils.errors import display_error_help
 def call_go_collector(locations):
     """
     Execute Go data collector subprocess
-
-    Args:
-        locations (list): List of location dictionaries with 'name', 'lat', 'lon'
-
-    Returns:
-        bool: True if Go collector executed successfully, False otherwise
-
-    Example:
-        locations = [
-            {'name': 'London, UK', 'lat': 51.5074, 'lon': -0.1278},
-            {'name': 'Paris, France', 'lat': 48.8566, 'lon': 2.3522}
-        ]
-        success = call_go_collector(locations)
     """
     # Create integration directory if it doesn't exist
     integration_dir = "data/integration"
@@ -42,48 +28,51 @@ def call_go_collector(locations):
             go_location = {
                 "name": loc.get("name", "Unknown"),
                 "lat": float(loc.get("lat", 0)),
-                "lon": float(loc.get("lon", 0))
+                "lon": float(loc.get("lon", 0)),
             }
             go_locations.append(go_location)
 
         # Write to JSON file
-        with open(input_file, 'w') as f:
+        with open(input_file, "w") as f:
             json.dump(go_locations, f, indent=2)
 
-
-
     except Exception as e:
-        display_error_help('file_write_error', f"Could not write locations: {e}")
+        display_error_help("file_write_error", f"Could not write locations: {e}")
         return False
 
     # Execute Go data collector
     try:
-
-
-        # Change to Go directory and run
-        go_dir = "go-components/data-collector"
-        result = subprocess.run(
-            ["go", "run", "main.go"],
-            cwd=go_dir,
-            capture_output=True,
-            text=True,
-            timeout=30  # 30 second timeout
-        )
+        # Check if compiled binary exists (installed version)
+        binary_path = "data-collector"
+        if os.path.exists(binary_path):
+            # Use compiled binary
+            result = subprocess.run(
+                [binary_path], capture_output=True, text=True, timeout=30
+            )
+        else:
+            # Development mode - use go run
+            go_dir = "go-components/data-collector"
+            result = subprocess.run(
+                ["go", "run", "main.go"],
+                cwd=go_dir,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
 
         if result.returncode == 0:
-            # Go data collector completed successfully
             return True
         else:
             return False
 
     except subprocess.TimeoutExpired:
-        display_error_help('subprocess_timeout', "Go collector took too long")
+        display_error_help("subprocess_timeout", "Go collector took too long")
         return False
     except FileNotFoundError:
-        display_error_help('go_not_found', "Go not installed or not in PATH")
+        display_error_help("go_not_found", "Go not installed or not in PATH")
         return False
     except Exception as e:
-        display_error_help('subprocess_error', str(e))
+        display_error_help("subprocess_error", str(e))
         return False
 
 
@@ -112,44 +101,46 @@ def load_go_collected_data():
     output_file = "data/integration/output_weather.json"
 
     if not os.path.exists(output_file):
-        display_error_help('file_not_found', f"Go output file not found: {output_file}")
+        display_error_help("file_not_found", f"Go output file not found: {output_file}")
         return None
 
     # Read and parse the JSON file
     try:
-        with open(output_file, 'r') as f:
+        with open(output_file, "r") as f:
             weather_data = json.load(f)
-
-
 
         # Convert Go format to Python-friendly format (optional processing)
         processed_data = []
         for item in weather_data:
-            current_weather = item.get('current_weather', {})
+            current_weather = item.get("current_weather", {})
 
             processed_item = {
-                'location': item.get('location', {}),
-                'temperature': current_weather.get('temperature'),
-                'pressure': current_weather.get('pressure'),
-                'humidity': current_weather.get('humidity'),
-                'wind_speed': current_weather.get('wind_speed'),
-                'wind_direction': current_weather.get('wind_direction'),
-                'cloud_cover': current_weather.get('cloud_cover'),
-                'precipitation_mm': current_weather.get('precipitation_mm', 0),
-                'precipitation_probability': current_weather.get('precipitation_probability', 0),
-                'symbol_code': current_weather.get('symbol_code', 'unknown'),
-                'success': item.get('success', False),
-                'error': item.get('error', ''),
-                'timestamp': current_weather.get('timestamp'),
-                'forecast': item.get('forecast', [])  # Include forecast data for future use
+                "location": item.get("location", {}),
+                "temperature": current_weather.get("temperature"),
+                "pressure": current_weather.get("pressure"),
+                "humidity": current_weather.get("humidity"),
+                "wind_speed": current_weather.get("wind_speed"),
+                "wind_direction": current_weather.get("wind_direction"),
+                "cloud_cover": current_weather.get("cloud_cover"),
+                "precipitation_mm": current_weather.get("precipitation_mm", 0),
+                "precipitation_probability": current_weather.get(
+                    "precipitation_probability", 0
+                ),
+                "symbol_code": current_weather.get("symbol_code", "unknown"),
+                "success": item.get("success", False),
+                "error": item.get("error", ""),
+                "timestamp": current_weather.get("timestamp"),
+                "forecast": item.get(
+                    "forecast", []
+                ),  # Include forecast data for future use
             }
             processed_data.append(processed_item)
 
         return processed_data
 
     except json.JSONDecodeError as e:
-        display_error_help('json_parsing_error', f"Invalid JSON in output file: {e}")
+        display_error_help("json_parsing_error", f"Invalid JSON in output file: {e}")
         return None
     except Exception as e:
-        display_error_help('file_read_error', f"Could not read output file: {e}")
+        display_error_help("file_read_error", f"Could not read output file: {e}")
         return None

@@ -33,9 +33,23 @@ git clone https://github.com/redsskull/weather-intelligence-system.git
 cd weather-intelligence-system
 ```
 
-2. Run the installation script:
+2. Set up a virtual environment and install dependencies:
 ```bash
-bash install.sh
+python -m venv venv
+source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+3. Install Go dependencies and build Go components:
+```bash
+cd go-components/data-collector && go build -o ../../data-collector && cd ../..
+cd go-components/pattern-engine && go build -o ../../pattern-engine && cd ../..
+```
+
+4. Run the project:
+```bash
+python project.py
 ```
 
 ## Safety Features
@@ -52,7 +66,9 @@ Our installation script includes several safety measures to protect your system:
 
 5. **Prerequisite Checks**: The installer verifies that Python, Go, and Git are installed before proceeding.
 
-6. **Cleanup on Failure**: If the installation fails, temporary files are cleaned up automatically.
+6. **Virtual Environment Isolation**: Python dependencies are installed in a dedicated virtual environment to avoid system-wide package conflicts.
+
+7. **Cleanup on Failure**: If the installation fails, temporary files are cleaned up automatically.
 
 ## Prerequisites
 
@@ -71,17 +87,49 @@ The installation requires:
 ## What the Installation Does
 
 **On Linux/macOS:**
-1. Clones the repository to `~/.local/share/weather-intelligence-system`
+1. Creates the installation directory at `~/.weather-intel`
 2. Builds the Go components
-3. Sets up a Python virtual environment
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
+5. The `weather` command runs the application from within the virtual environment
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
+5. The `weather` command runs the application from within the virtual environment
 4. Installs the `weather` and `weather-collector` binaries to `~/.local/bin` (or `~/bin` if `~/.local/bin` doesn't exist)
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
+5. The `weather` command runs the application from within the virtual environment
 5. Optionally adds the installation directory to your PATH in your shell configuration
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
+5. The `weather` command runs the application from within the virtual environment
 
 **On Windows:**
-1. Downloads the repository to `$env:LOCALAPPDATA\weather-intelligence-system`
+1. Creates the installation directory at `$env:USERPROFILE\.weather-intel`
 2. Builds the Go components
-3. Sets up a Python virtual environment
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
+5. Automatically adds the installation directory to your user PATH environment variable
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
+5. Automatically adds the installation directory to your user PATH environment variable
 4. Installs the `weather` command as a PowerShell script and batch file to `$env:LOCALAPPDATA\Programs\weather-intelligence-system`
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
+5. Automatically adds the installation directory to your user PATH environment variable
+5. Automatically adds the installation directory to your user PATH environment variable
+2. Builds the Go components
+3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
+4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
 5. Automatically adds the installation directory to your user PATH environment variable
 
 ## Post-Installation
@@ -100,17 +148,21 @@ weather
 ## Uninstall
 
 **On Linux/macOS:**
-To uninstall, simply remove:
-- The installation directory: `~/.local/share/weather-intelligence-system`
-- The installed binaries: `~/.local/bin/weather` and `~/.local/bin/weather-collector` (or in `~/bin` if applicable)
-- The PATH entry from your shell configuration file
-
-**On Windows:**
-Run the uninstall command:
-```powershell
-weather uninstall
+You can uninstall using the uninstall command:
+```bash
+weather-uninstall
 ```
 Or manually remove:
-- The installation directory: `$env:LOCALAPPDATA\weather-intelligence-system`
-- The installed binaries: `$env:LOCALAPPDATA\Programs\weather-intelligence-system`
+- The installation directory: `~/.weather-intel`
+- The installed binary: `~/.local/bin/weather`
+- The uninstall binary: `~/.local/bin/weather-uninstall`
+
+**On Windows:**
+You can uninstall using the uninstall command:
+```powershell
+weather-uninstall
+```
+Or manually remove:
+- The installation directory: `$env:USERPROFILE\.weather-intel`
+- The installed scripts: `$env:USERPROFILE\.local\bin\weather.ps1` and `$env:USERPROFILE\.local\bin\weather-uninstall.ps1`
 - The PATH entry from your user environment variables

@@ -136,11 +136,11 @@ def test_analyze_patterns():
 
     result = analyze_patterns(extreme_weather)
     assert result["data_points"] == 1
-    assert result["patterns_detected"] == 5  # Should detect 5 conditions
+    assert result["patterns_detected"] == 5  # Should detect 4 conditions
 
     expected_conditions = [
         "freezing_temperature",
-        "high_humidity", 
+        "high_humidity",
         "low_pressure",
         "heavy_precipitation",
         "freezing_precipitation_warning",

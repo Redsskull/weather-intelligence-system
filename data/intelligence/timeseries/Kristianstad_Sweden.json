@@ -408,11 +408,76 @@
       "precipitation_mm": 0,
       "precipitation_probability": 0,
       "symbol_code": "clearsky_day"
+    },
+    {
+      "timestamp": "2025-10-14T10:00:00Z",
+      "saved_at": "2025-10-14T12:28:30.402338",
+      "temperature": 11,
+      "pressure": 1022.8,
+      "humidity": 80.2,
+      "wind_speed": 1.2,
+      "wind_direction": 73.8,
+      "cloud_cover": 99.7,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T13:11:57.585805",
+      "temperature": 11.4,
+      "pressure": 1023,
+      "humidity": 78.4,
+      "wind_speed": 1,
+      "wind_direction": 31.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T13:21:09.459022",
+      "temperature": 11.4,
+      "pressure": 1023,
+      "humidity": 78.4,
+      "wind_speed": 1,
+      "wind_direction": 31.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T13:29:11.535531",
+      "temperature": 11.4,
+      "pressure": 1023,
+      "humidity": 78.4,
+      "wind_speed": 1,
+      "wind_direction": 31.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T13:44:17.039623",
+      "temperature": 11.8,
+      "pressure": 1023,
+      "humidity": 78.4,
+      "wind_speed": 1,
+      "wind_direction": 31.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
     }
   ],
   "metadata": {
-    "total_readings": 31,
+    "total_readings": 36,
     "first_reading": "2025-10-10T08:14:03.755776",
-    "last_reading": "2025-10-13T11:44:58.322971"
+    "last_reading": "2025-10-14T13:44:17.039623"
   }
 }

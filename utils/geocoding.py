@@ -26,18 +26,18 @@ class GeocodeCache:
         """Load existing cache from file"""
         try:
             if os.path.exists(self.cache_file):
-                with open(self.cache_file, 'r') as f:
+                with open(self.cache_file, "r") as f:
                     self.cache_data = json.load(f)
-        except Exception as e:
+        except Exception:
             # Silently handle cache loading errors
             self.cache_data = {}
 
     def _save_cache(self):
         """Save cache to file"""
         try:
-            with open(self.cache_file, 'w') as f:
+            with open(self.cache_file, "w") as f:
                 json.dump(self.cache_data, f, indent=2)
-        except Exception as e:
+        except Exception:
             # Silently handle cache saving errors
             pass
 
@@ -49,13 +49,14 @@ class GeocodeCache:
     def set(self, city_name, result):
         """Cache result for city"""
         normalized_name = city_name.lower().strip()
-        result['cached_at'] = time.time()
+        result["cached_at"] = time.time()
         self.cache_data[normalized_name] = result
         self._save_cache()
 
 
 # Global cache instance
 _cache = GeocodeCache()
+
 
 def suggest_similar_cities(city_name, limit=5):
     """
@@ -71,15 +72,10 @@ def suggest_similar_cities(city_name, limit=5):
 
     try:
         url = "https://nominatim.openstreetmap.org/search"
-        params = {
-            'q': city_name,
-            'format': 'json',
-            'limit': limit,
-            'addressdetails': 1
-        }
+        params = {"q": city_name, "format": "json", "limit": limit, "addressdetails": 1}
 
         headers = {
-            'User-Agent': 'WeatherIntelligenceSystem/1.0 (CS50 Educational Project)'
+            "User-Agent": "WeatherIntelligenceSystem/1.0 (CS50 Educational Project)"
         }
 
         response = requests.get(url, params=params, headers=headers, timeout=10)
@@ -91,7 +87,7 @@ def suggest_similar_cities(city_name, limit=5):
             seen_locations = set()  # Track duplicates by display_name
 
             for location in results:
-                display_name = location['display_name']
+                display_name = location["display_name"]
 
                 # Skip duplicates
                 if display_name in seen_locations:
@@ -100,11 +96,11 @@ def suggest_similar_cities(city_name, limit=5):
                 seen_locations.add(display_name)
 
                 suggestion = {
-                    'display_name': display_name,
-                    'lat': float(location['lat']),
-                    'lon': float(location['lon']),
-                    'country': location.get('address', {}).get('country', ''),
-                    'city': location.get('address', {}).get('city', city_name)
+                    "display_name": display_name,
+                    "lat": float(location["lat"]),
+                    "lon": float(location["lon"]),
+                    "country": location.get("address", {}).get("country", ""),
+                    "city": location.get("address", {}).get("city", city_name),
                 }
                 suggestions.append(suggestion)
 
@@ -112,5 +108,5 @@ def suggest_similar_cities(city_name, limit=5):
         else:
             return []
 
-    except Exception as e:
+    except Exception:
         return []

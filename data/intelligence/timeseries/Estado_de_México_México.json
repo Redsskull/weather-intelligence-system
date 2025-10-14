@@ -1,0 +1,28 @@
+{
+  "location": "Estado de M\u00e9xico, M\u00e9xico",
+  "coordinates": {
+    "lat": 19.4839446,
+    "lon": -99.6899716
+  },
+  "created_at": "2025-10-14T13:12:02.917458",
+  "readings": [
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T13:12:02.917458",
+      "temperature": 6.7,
+      "pressure": 1019.9,
+      "humidity": 96.2,
+      "wind_speed": 1.7,
+      "wind_direction": 338.7,
+      "cloud_cover": 54.7,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "fog"
+    }
+  ],
+  "metadata": {
+    "total_readings": 1,
+    "first_reading": "2025-10-14T13:12:02.917458",
+    "last_reading": "2025-10-14T13:12:02.917458"
+  }
+}
