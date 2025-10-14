@@ -6,6 +6,7 @@ I'm very proud of this one.
 import os
 import json
 import subprocess
+import platform
 
 from utils.errors import display_error_help
 
@@ -42,8 +43,14 @@ def call_go_collector(locations):
 
     # Execute Go data collector
     try:
+        # Determine the correct binary name based on the OS
+        system = platform.system().lower()
+        if system == "windows":
+            binary_path = "data-collector.exe"
+        else:
+            binary_path = "data-collector"  # Linux/macOS
+            
         # Check if compiled binary exists (installed version)
-        binary_path = "data-collector"
         if os.path.exists(binary_path):
             # Use compiled binary
             result = subprocess.run(

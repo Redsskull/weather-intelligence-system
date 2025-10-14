@@ -51,6 +51,10 @@ git clone https://github.com/redsskull/weather-intelligence-system.git "$TEMP_DI
 cd "$TEMP_DIR/repo/go-components/data-collector" && go build -o "$INSTALL_DIR/data-collector" && cd "$INSTALL_DIR"
 cd "$TEMP_DIR/repo/go-components/pattern-engine" && go build -o "$INSTALL_DIR/pattern-engine" && cd "$INSTALL_DIR"
 
+# Make binaries executable
+chmod +x "$INSTALL_DIR/data-collector"
+chmod +x "$INSTALL_DIR/pattern-engine"
+
 # Cleanup
 rm -rf "$TEMP_DIR"
 

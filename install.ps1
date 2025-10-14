@@ -87,6 +87,9 @@ Set-Location $patternEngineDir
 go build -o $engineExe
 Set-Location $installDir
 
+# On Windows, executable permissions are handled by the system
+# The .exe files should be executable by default
+
 # Cleanup
 Remove-Item -Path $tempDir -Recurse -Force
 

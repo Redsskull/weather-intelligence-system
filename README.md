@@ -4,6 +4,8 @@ A comprehensive weather data collection and analysis system.
 
 ## Installation
 
+**Prerequisites:** Before installing, ensure you have Python 3.x, Go, and Git installed on your system.
+
 The Weather Intelligence System can be installed using one of the following methods:
 
 ### Quick Install (Recommended)
@@ -72,30 +74,31 @@ Our installation script includes several safety measures to protect your system:
 
 ## Prerequisites
 
-The installation requires:
+**Before running the installation script, you must have the following tools installed on your system:**
+
+- **Python 3.x** (with pip)
+- **Go** (latest stable version)
+- **Git** (for downloading and building Go components)
+
+The installation script will check for these prerequisites and exit with an error message if any are missing.
+
 - **On Linux/macOS:**
-  - Python 3.x
-  - Go
-  - Git
   - A Unix-like operating system (Linux/macOS)
 - **On Windows:**
   - PowerShell 5.1 or later
-  - Python 3.x
-  - Go
-  - Git
 
 ## What the Installation Does
 
 **On Linux/macOS:**
 1. Creates the installation directory at `~/.weather-intel` containing all application files
-2. Downloads the source code, builds the Go components, and stores the compiled binaries in the installation directory
+2. Downloads the source code, builds the Go components (requires Git), and stores the compiled binaries in the installation directory
 3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
 4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
 5. The `weather` command runs the application from within the virtual environment
 
 **On Windows:**
 1. Creates the installation directory at `$env:USERPROFILE\.weather-intel` containing all application files
-2. Downloads the source code, builds the Go components, and stores the compiled binaries in the installation directory
+2. Downloads the source code, builds the Go components (requires Git), and stores the compiled binaries in the installation directory
 3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
 4. Installs the `weather` command script to `$env:USERPROFILE\.local\bin`
 5. Automatically adds the installation directory to your user PATH environment variable
