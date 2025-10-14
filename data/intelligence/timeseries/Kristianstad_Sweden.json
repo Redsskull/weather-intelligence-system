@@ -473,11 +473,37 @@
       "precipitation_mm": 0,
       "precipitation_probability": 0,
       "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T14:02:32.786822",
+      "temperature": 11.8,
+      "pressure": 1023,
+      "humidity": 78.4,
+      "wind_speed": 1,
+      "wind_direction": 31.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-14T11:00:00Z",
+      "saved_at": "2025-10-14T14:09:40.943782",
+      "temperature": 11.8,
+      "pressure": 1023,
+      "humidity": 78.4,
+      "wind_speed": 1,
+      "wind_direction": 31.4,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
     }
   ],
   "metadata": {
-    "total_readings": 36,
+    "total_readings": 38,
     "first_reading": "2025-10-10T08:14:03.755776",
-    "last_reading": "2025-10-14T13:44:17.039623"
+    "last_reading": "2025-10-14T14:09:40.943782"
   }
 }

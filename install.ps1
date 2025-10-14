@@ -3,9 +3,10 @@
 
 Write-Host "Installing Weather Intelligence System..." -ForegroundColor Green
 
-# Check for Python and Go
+# Check for Python, Go, and Git
 $pythonExists = Get-Command python -ErrorAction SilentlyContinue
 $goExists = Get-Command go -ErrorAction SilentlyContinue
+$gitExists = Get-Command git -ErrorAction SilentlyContinue
 
 if (-not $pythonExists) {
     Write-Host "Error: Python is required but not found." -ForegroundColor Red
@@ -17,16 +18,52 @@ if (-not $goExists) {
     exit 1
 }
 
+if (-not $gitExists) {
+    Write-Host "Error: Git is required but not found." -ForegroundColor Red
+    exit 1
+}
+
+# Define repository URL
+$repoUrl = "https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main"
+
 # Create install location
 $installDir = "$env:USERPROFILE\.weather-intel"
 $dataIntegrationDir = Join-Path $installDir "data\integration"
 New-Item -ItemType Directory -Path $dataIntegrationDir -Force
 
-# Copy Python files
-Copy-Item "project.py" $installDir -Force
-Copy-Item "requirements.txt" $installDir -Force
-Copy-Item "utils" $installDir -Recurse -Force
-Copy-Item "data" $installDir -Recurse -Force
+# Download Python files
+Write-Host "Downloading project files..." -ForegroundColor Yellow
+$projectPyPath = Join-Path $installDir "project.py"
+$requirementsPath = Join-Path $installDir "requirements.txt"
+
+Invoke-WebRequest -Uri "$repoUrl/project.py" -OutFile $projectPyPath
+Invoke-WebRequest -Uri "$repoUrl/requirements.txt" -OutFile $requirementsPath
+
+# Create directory structure and download utils files if they exist
+$utilsDir = Join-Path $installDir "utils"
+New-Item -ItemType Directory -Path $utilsDir -Force
+
+# Download utils files if they exist
+$utilsBaseUrl = "$repoUrl/utils"
+try {
+    Invoke-WebRequest -Uri "$utilsBaseUrl/__init__.py" -OutFile (Join-Path $utilsDir "__init__.py") -ErrorAction Stop
+} catch {
+    Write-Host "Info: utils/__init__.py not found, skipping..." -ForegroundColor Yellow
+}
+try {
+    Invoke-WebRequest -Uri "$utilsBaseUrl/data_processor.py" -OutFile (Join-Path $utilsDir "data_processor.py") -ErrorAction Stop
+} catch {
+    Write-Host "Info: utils/data_processor.py not found, skipping..." -ForegroundColor Yellow
+}
+try {
+    Invoke-WebRequest -Uri "$utilsBaseUrl/file_handler.py" -OutFile (Join-Path $utilsDir "file_handler.py") -ErrorAction Stop
+} catch {
+    Write-Host "Info: utils/file_handler.py not found, skipping..." -ForegroundColor Yellow
+}
+
+New-Item -ItemType Directory -Path (Join-Path $installDir "data\cache") -Force
+New-Item -ItemType Directory -Path (Join-Path $installDir "data\integration") -Force
+New-Item -ItemType Directory -Path (Join-Path $installDir "data\intelligence") -Force
 
 # Create virtual environment and install Python dependencies
 $venvPath = Join-Path $installDir "venv"
@@ -36,16 +73,28 @@ $venvPython = Join-Path $venvPath "Scripts\python.exe"
 & $venvPython -m pip install --upgrade pip
 & $venvPython -m pip install -r (Join-Path $installDir "requirements.txt")
 
-# Build and copy Go binaries
-Set-Location (Join-Path $PSScriptRoot "go-components/data-collector")
-$collectorExe = Join-Path $installDir "data-collector.exe"
-go build -o $collectorExe
-Set-Location $PSScriptRoot
+# Clone the repository to build Go components
+Write-Host "Downloading and building Go components..." -ForegroundColor Yellow
+$tempDir = Join-Path $env:TEMP "weather-intel-install-$(Get-Random)"
+New-Item -ItemType Directory -Path $tempDir -Force
+git clone https://github.com/redsskull/weather-intelligence-system.git (Join-Path $tempDir "repo")
 
-Set-Location (Join-Path $PSScriptRoot "go-components/pattern-engine")
+# Build Go binaries
+$dataCollectorDir = Join-Path $tempDir "repo\go-components\data-collector"
+$patternEngineDir = Join-Path $tempDir "repo\go-components\pattern-engine"
+$collectorExe = Join-Path $installDir "data-collector.exe"
 $engineExe = Join-Path $installDir "pattern-engine.exe"
+
+Set-Location $dataCollectorDir
+go build -o $collectorExe
+Set-Location $installDir
+
+Set-Location $patternEngineDir
 go build -o $engineExe
-Set-Location $PSScriptRoot
+Set-Location $installDir
+
+# Cleanup
+Remove-Item -Path $tempDir -Recurse -Force
 
 # Create weather command script
 $localBinDir = Join-Path $env:USERPROFILE ".local\bin"

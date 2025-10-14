@@ -89,22 +89,6 @@ The installation requires:
 **On Linux/macOS:**
 1. Creates the installation directory at `~/.weather-intel`
 2. Builds the Go components
-2. Builds the Go components
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
-5. The `weather` command runs the application from within the virtual environment
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-2. Builds the Go components
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
-5. The `weather` command runs the application from within the virtual environment
-4. Installs the `weather` and `weather-collector` binaries to `~/.local/bin` (or `~/bin` if `~/.local/bin` doesn't exist)
-2. Builds the Go components
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
-5. The `weather` command runs the application from within the virtual environment
-5. Optionally adds the installation directory to your PATH in your shell configuration
-2. Builds the Go components
 3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
 4. Installs the `weather` and `weather-uninstall` commands to `~/.local/bin`
 5. The `weather` command runs the application from within the virtual environment
@@ -112,24 +96,8 @@ The installation requires:
 **On Windows:**
 1. Creates the installation directory at `$env:USERPROFILE\.weather-intel`
 2. Builds the Go components
-2. Builds the Go components
 3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
-5. Automatically adds the installation directory to your user PATH environment variable
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-2. Builds the Go components
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
-5. Automatically adds the installation directory to your user PATH environment variable
-4. Installs the `weather` command as a PowerShell script and batch file to `$env:LOCALAPPDATA\Programs\weather-intelligence-system`
-2. Builds the Go components
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
-5. Automatically adds the installation directory to your user PATH environment variable
-5. Automatically adds the installation directory to your user PATH environment variable
-2. Builds the Go components
-3. Creates and sets up a Python virtual environment (venv) for isolated dependencies
-4. Installs the `weather.ps1` command script to `$env:USERPROFILE\.local\bin`
+4. Installs the `weather` command script to `$env:USERPROFILE\.local\bin`
 5. Automatically adds the installation directory to your user PATH environment variable
 
 ## Post-Installation
