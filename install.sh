@@ -74,10 +74,89 @@ rm -rf "$HOME/.weather-intel"
 rm -f "$HOME/.local/bin/weather"
 rm -f "$HOME/.local/bin/weather-uninstall"
 echo "Uninstallation complete!"
-EOF
 chmod +x "$HOME/.local/bin/weather-uninstall"
 
-echo "Done! Run: weather"
-echo "To uninstall: weather-uninstall"
-echo "If command not found, add to ~/.bashrc:"
-echo 'export PATH="$HOME/.local/bin:$PATH"'
+# Attempt to automatically add PATH to the appropriate shell profile
+SHELL_PROFILE=""
+
+# Detect the shell and determine the appropriate profile file
+if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ]; then
+    # For zsh (default on macOS), try .zprofile first, then .zshrc
+    if [ -f "$HOME/.zprofile" ] || [ ! -f "$HOME/.zshrc" ]; then
+        SHELL_PROFILE="$HOME/.zprofile"
+    else
+        SHELL_PROFILE="$HOME/.zshrc"
+    fi
+elif [ -n "$BASH_VERSION" ] || [ "$SHELL" = "/bin/bash" ]; then
+    # For bash, try .bash_profile on macOS, .bashrc on Linux
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS uses .bash_profile by default
+        if [ -f "$HOME/.bash_profile" ]; then
+            SHELL_PROFILE="$HOME/.bash_profile"
+        else
+            SHELL_PROFILE="$HOME/.bashrc"
+        fi
+    else
+        # Linux typically uses .bashrc
+        SHELL_PROFILE="$HOME/.bashrc"
+    fi
+else
+    # Default fallback - try to detect shell
+    if [ -n "$SHELL" ]; then
+        case "$SHELL" in
+            */zsh)
+                if [ -f "$HOME/.zprofile" ] || [ ! -f "$HOME/.zshrc" ]; then
+                    SHELL_PROFILE="$HOME/.zprofile"
+                else
+                    SHELL_PROFILE="$HOME/.zshrc"
+                fi
+                ;;
+            */bash)
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    if [ -f "$HOME/.bash_profile" ]; then
+                        SHELL_PROFILE="$HOME/.bash_profile"
+                    else
+                        SHELL_PROFILE="$HOME/.bashrc"
+                    fi
+                else
+                    SHELL_PROFILE="$HOME/.bashrc"
+                fi
+                ;;
+        esac
+    fi
+fi
+
+# If we found a shell profile, add the PATH export to it if not already present
+if [ -n "$SHELL_PROFILE" ]; then
+    if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$SHELL_PROFILE" 2>/dev/null; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_PROFILE"
+        echo "✅ Added PATH export to $SHELL_PROFILE"
+    else
+        echo "ℹ️  PATH export already exists in $SHELL_PROFILE"
+    fi
+else
+    echo "⚠️  Could not determine shell profile, you may need to add PATH export manually"
+fi
+
+echo "✅ Done! Run: weather"
+echo "🗑️  To uninstall: weather-uninstall"
+
+# Show info about shell profile if we couldn't update it automatically
+if [ -z "$SHELL_PROFILE" ]; then
+    echo "🔄 If command not found, add to your shell profile:"
+    echo 'export PATH="$HOME/.local/bin:$PATH"'
+    
+    # Detect the shell and suggest the appropriate profile file
+    if [ -n "$ZSH_VERSION" ] || [ "$SHELL" = "/bin/zsh" ]; then
+        echo "For zsh (default on macOS): echo 'export PATH=\\\"\\$HOME/.local/bin:\\$PATH\\\"' >> ~/.zprofile"
+        echo "                         Or: echo 'export PATH=\\\"\\$HOME/.local/bin:\\$PATH\\\"' >> ~/.zshrc"
+    elif [ -n "$BASH_VERSION" ] || [ "$SHELL" = "/bin/bash" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "For macOS with bash: echo 'export PATH=\\\"\\$HOME/.local/bin:\\$PATH\\\"' >> ~/.bash_profile"
+        else
+            echo "For Linux with bash: echo 'export PATH=\\\"\\$HOME/.local/bin:\\$PATH\\\"' >> ~/.bashrc"
+        fi
+    else
+        echo "For other shells, add to your appropriate profile file"
+    fi
+fi

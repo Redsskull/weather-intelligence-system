@@ -133,7 +133,7 @@ if (-not $userPath.Contains($localBinDir)) {
     Write-Host "Added $localBinDir to PATH. You may need to restart your terminal." -ForegroundColor Yellow
 }
 
-Write-Host "Installation complete!" -ForegroundColor Green
-Write-Host "Run: weather or weather.ps1" -ForegroundColor Green
-Write-Host "To uninstall: weather-uninstall or weather-uninstall.ps1" -ForegroundColor Green
-Write-Host "If command not found, you may need to restart your terminal." -ForegroundColor Yellow
+Write-Host "✅ Installation complete!" -ForegroundColor Green
+Write-Host "🏃 Run: weather or weather.ps1" -ForegroundColor Green  
+Write-Host "🗑️  To uninstall: weather-uninstall or weather-uninstall.ps1" -ForegroundColor Green
+Write-Host "🔄 If command not found, you may need to restart your terminal." -ForegroundColor Yellow

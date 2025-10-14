@@ -106,7 +106,12 @@ The installation script will check for these prerequisites and exit with an erro
 ## Post-Installation
 
 **On Linux/macOS:**
-After installation, you may need to restart your terminal or run `source ~/.bashrc` (or the appropriate shell configuration file) to update your PATH.
+After installation, you may need to restart your terminal or run the appropriate source command for your shell to update your PATH:
+
+- For bash users: `source ~/.bashrc` or `source ~/.bash_profile` 
+- For zsh users (default on macOS): `source ~/.zshrc` or `source ~/.zprofile`
+  - On macOS, it's often `.zprofile` that exports PATH variables
+- Or simply restart your terminal
 
 ## Installed Files
 
