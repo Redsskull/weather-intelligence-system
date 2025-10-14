@@ -121,9 +121,9 @@ func getDefaultConfig() *Config {
 			RetryDelay: 2 * time.Second,
 		},
 		Integration: IntegrationConfig{
-			InputFile:     "../../data/integration/input_locations.json",
-			OutputFile:    "../../data/integration/output_weather.json",
-			DataDirectory: "../../data/integration",
+			InputFile:     "data/integration/input_locations.json",
+			OutputFile:    "data/integration/output_weather.json",
+			DataDirectory: "data/integration",
 			CreateDirs:    true,
 		},
 		Performance: PerformanceConfig{

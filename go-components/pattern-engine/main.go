@@ -17,7 +17,7 @@ func main() {
 	fmt.Println("🧠 Weather Pattern Engine v2.0 starting...")
 	fmt.Println("🔍 Analyzing historical weather patterns with intelligent forecasting")
 
-	timeseriesDir := "../../data/intelligence/timeseries/"
+	timeseriesDir := "data/intelligence/timeseries/"
 	fmt.Printf("📂 Reading time-series data from: %s\n", timeseriesDir)
 
 	files, err := os.ReadDir(timeseriesDir)
@@ -279,7 +279,7 @@ func saveAnalysisResult(locationData *models.LocationData, trends []models.Trend
 	}
 
 	// Create output directory if it doesn't exist
-	outputDir := "../../data/intelligence/analysis"
+	outputDir := "data/intelligence/analysis"
 	os.MkdirAll(outputDir, 0755)
 
 	// Generate filename based on location and timestamp

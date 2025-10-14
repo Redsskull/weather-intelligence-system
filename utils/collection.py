@@ -50,37 +50,68 @@ def call_go_collector(locations):
         else:
             binary_path = "./data-collector"  # Linux/macOS
             
-        # Check if compiled binary exists (installed version)
-        if os.path.exists(binary_path):
-            # Use compiled binary
-            result = subprocess.run(
-                [binary_path], capture_output=True, text=True, timeout=30
-            )
+        # Use compiled binary directly (check will be part of subprocess call)
+        result = subprocess.run(
+            [binary_path], capture_output=True, text=True, timeout=30
+        )
+
+        if result.returncode == 0:
+            return True
         else:
-            # Fallback: try without leading ./
+            # Try without the leading ./
             if system == "windows":
                 fallback_path = "data-collector.exe"
             else:
                 fallback_path = "data-collector"
                 
-            if os.path.exists(fallback_path):
-                result = subprocess.run(
-                    [fallback_path], capture_output=True, text=True, timeout=30
-                )
+            result = subprocess.run(
+                [fallback_path], capture_output=True, text=True, timeout=30
+            )
+            
+            if result.returncode == 0:
+                return True
             else:
-                # Development mode - use go run
-                go_dir = "go-components/data-collector"
-                result = subprocess.run(
-                    ["go", "run", "main.go"],
-                    cwd=go_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
+                return False
 
-        if result.returncode == 0:
-            return True
-        else:
+    except subprocess.TimeoutExpired:
+        display_error_help("subprocess_timeout", "Go collector took too long")
+        return False
+    except FileNotFoundError:
+        # If the binary is not found, try development mode
+        try:
+            go_dir = "go-components/data-collector"
+            result = subprocess.run(
+                ["go", "run", "main.go"],
+                cwd=go_dir,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                return True
+            else:
+                return False
+        except FileNotFoundError:
+            display_error_help("go_not_found", "Go not installed or not in PATH")
+            return False
+    except Exception as e:
+        # For other exceptions (like OSError for binary execution failure),
+        # try development mode as fallback
+        try:
+            go_dir = "go-components/data-collector"
+            result = subprocess.run(
+                ["go", "run", "main.go"],
+                cwd=go_dir,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                return True
+            else:
+                return False
+        except FileNotFoundError:
+            display_error_help("go_not_found", f"Go not installed or not in PATH: {str(e)}")
             return False
 
     except subprocess.TimeoutExpired:
