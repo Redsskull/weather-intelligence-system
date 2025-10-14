@@ -46,9 +46,9 @@ def call_go_collector(locations):
         # Determine the correct binary name based on the OS
         system = platform.system().lower()
         if system == "windows":
-            binary_path = "data-collector.exe"
+            binary_path = "./data-collector.exe"
         else:
-            binary_path = "data-collector"  # Linux/macOS
+            binary_path = "./data-collector"  # Linux/macOS
             
         # Check if compiled binary exists (installed version)
         if os.path.exists(binary_path):
@@ -57,15 +57,26 @@ def call_go_collector(locations):
                 [binary_path], capture_output=True, text=True, timeout=30
             )
         else:
-            # Development mode - use go run
-            go_dir = "go-components/data-collector"
-            result = subprocess.run(
-                ["go", "run", "main.go"],
-                cwd=go_dir,
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
+            # Fallback: try without leading ./
+            if system == "windows":
+                fallback_path = "data-collector.exe"
+            else:
+                fallback_path = "data-collector"
+                
+            if os.path.exists(fallback_path):
+                result = subprocess.run(
+                    [fallback_path], capture_output=True, text=True, timeout=30
+                )
+            else:
+                # Development mode - use go run
+                go_dir = "go-components/data-collector"
+                result = subprocess.run(
+                    ["go", "run", "main.go"],
+                    cwd=go_dir,
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
 
         if result.returncode == 0:
             return True
