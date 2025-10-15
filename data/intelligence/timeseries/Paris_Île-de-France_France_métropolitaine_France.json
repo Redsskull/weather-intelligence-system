@@ -31,11 +31,24 @@
       "precipitation_mm": 0,
       "precipitation_probability": 0,
       "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-15T09:00:00Z",
+      "saved_at": "2025-10-15T12:10:29.368642",
+      "temperature": 11.6,
+      "pressure": 1030.1,
+      "humidity": 85.1,
+      "wind_speed": 2.8,
+      "wind_direction": 12.5,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
     }
   ],
   "metadata": {
-    "total_readings": 2,
+    "total_readings": 3,
     "first_reading": "2025-10-10T09:41:48.006174",
-    "last_reading": "2025-10-15T12:07:56.367740"
+    "last_reading": "2025-10-15T12:10:29.368642"
   }
 }
