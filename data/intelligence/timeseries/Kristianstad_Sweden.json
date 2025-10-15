@@ -499,11 +499,50 @@
       "precipitation_mm": 0,
       "precipitation_probability": 0,
       "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-15T09:00:00Z",
+      "saved_at": "2025-10-15T11:50:25.381639",
+      "temperature": 11.6,
+      "pressure": 1030.1,
+      "humidity": 85.1,
+      "wind_speed": 2.8,
+      "wind_direction": 12.5,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-15T09:00:00Z",
+      "saved_at": "2025-10-15T12:06:12.567837",
+      "temperature": 11.6,
+      "pressure": 1030.1,
+      "humidity": 85.1,
+      "wind_speed": 2.8,
+      "wind_direction": 12.5,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
+    },
+    {
+      "timestamp": "2025-10-15T09:00:00Z",
+      "saved_at": "2025-10-15T12:07:46.199253",
+      "temperature": 11.6,
+      "pressure": 1030.1,
+      "humidity": 85.1,
+      "wind_speed": 2.8,
+      "wind_direction": 12.5,
+      "cloud_cover": 100,
+      "precipitation_mm": 0,
+      "precipitation_probability": 0,
+      "symbol_code": "cloudy"
     }
   ],
   "metadata": {
-    "total_readings": 38,
+    "total_readings": 41,
     "first_reading": "2025-10-10T08:14:03.755776",
-    "last_reading": "2025-10-14T14:09:40.943782"
+    "last_reading": "2025-10-15T12:07:46.199253"
   }
 }
