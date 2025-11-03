@@ -7,6 +7,7 @@ import os
 import json
 import subprocess
 import platform
+import shutil
 
 from utils.errors import display_error_help
 
@@ -48,18 +49,17 @@ def call_go_collector(locations):
         # Check if the go directory and main.go exist
         if not os.path.exists(os.path.join(go_dir, "main.go")):
             raise FileNotFoundError("main.go not found in go-components/data-collector")
-            
+
         # When running go run, we need to run from the go directory
         # But we also need to make sure the input file is accessible
         # Let's create a symbolic link or copy the input file to the expected location
         expected_input_dir = os.path.join(go_dir, "data", "integration")
         os.makedirs(expected_input_dir, exist_ok=True)
         expected_input_file = os.path.join(expected_input_dir, "input_locations.json")
-        
+
         # Copy the input file to where Go expects it
-        import shutil
         shutil.copy2(input_file, expected_input_file)
-            
+
         # Run from the go directory
         result = subprocess.run(
             ["go", "run", "main.go"],
@@ -68,18 +68,14 @@ def call_go_collector(locations):
             text=True,
             timeout=30,
         )
-        
+
         # Clean up the copied file
         if os.path.exists(expected_input_file):
             os.remove(expected_input_file)
-        
+
         if result.returncode == 0:
             return True
         # If go run fails, continue to try compiled binary
-        # But let's log the error for debugging
-        print(f"Go run failed with return code {result.returncode}")
-        print(f"stderr: {result.stderr}")
-        print(f"stdout: {result.stdout}")
     except FileNotFoundError as e:
         # go command not found or main.go not found, continue to try compiled binary
         print(f"FileNotFoundError during go run: {e}")
@@ -101,7 +97,7 @@ def call_go_collector(locations):
             binary_path = "./data-collector.exe"
         else:
             binary_path = "./data-collector"  # Linux/macOS
-            
+
         # Use compiled binary directly (check will be part of subprocess call)
         result = subprocess.run(
             [binary_path], capture_output=True, text=True, timeout=30
@@ -110,16 +106,16 @@ def call_go_collector(locations):
         if result.returncode == 0:
             return True
         else:
-            # Try without the leading ./
+            # Try without the leading
             if system == "windows":
                 fallback_path = "data-collector.exe"
             else:
                 fallback_path = "data-collector"
-                
+
             result = subprocess.run(
                 [fallback_path], capture_output=True, text=True, timeout=30
             )
-            
+
             if result.returncode == 0:
                 return True
             else:

@@ -4,12 +4,6 @@ Test file for Weather Intelligence System - CS50 Final Project
 This file must be named 'test_project.py' per CS50 requirements.
 All functions in project.py must and will be tested here using pytest.
 """
-
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import pytest
 from project import fetch_weather_data, parse_current_weather, analyze_patterns
 
@@ -140,7 +134,7 @@ def test_analyze_patterns():
 
     expected_conditions = [
         "freezing_temperature",
-        "high_humidity", 
+        "high_humidity",
         "low_pressure",
         "heavy_precipitation",
         "freezing_precipitation_warning",

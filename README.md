@@ -31,8 +31,10 @@ Check out the system in action:
 ## Visual Overview
 
 ![Opener](images/Opener.png)
+*Weather Intelligence System main interface with natural language queries*
 
 ![Function Diagram](images/function.png)
+*System architecture showing Python-Go communication flow*
 
 ## Technical Architecture
 
