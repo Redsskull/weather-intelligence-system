@@ -1,0 +1,27 @@
+# Exclude version control
+.git
+.gitignore
+
+# Exclude Python cache and virtual environments
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache
+venv/
+env/
+.venv
+
+# Exclude Go build artifacts (we'll build fresh in container)
+go-components/*/go.sum
+go-components/*/*.exe
+
+# Exclude development tools
+.ropeproject/
+.vscode/
+.idea/
+
+# Exclude data files that should be mounted as volumes
+data/cache/
+data/historical/

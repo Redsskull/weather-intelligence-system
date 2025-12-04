@@ -81,13 +81,63 @@ The two-way arrows (⇄) between Go Data Collector, JSON Files, and Python Core 
 
 ## Installation
 
+The Weather Intelligence System offers multiple installation methods to suit different needs and preferences:
+
+- **🐳 Container Installation**: Perfect for users who want the simplest experience with no setup complexity
+- **🖥️ System Installation**: Ideal for developers who want to modify code or prefer native installations
+
+## 🐳 Container Installation (Recommended - Universal)
+
+**The easiest way to run Weather Intelligence System on any platform.**
+
+### Requirements
+- Only [Podman](https://podman.io/getting-started/installation) OR [Docker](https://docs.docker.com/get-docker/)
+
+### Method 1: Universal Script (Recommended)
+```bash
+# Download and run (automatically detects Podman or Docker)
+curl -fsSL https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/run-weather.sh | bash
+
+# Or download first, then run with persistent data
+curl -O https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/run-weather.sh
+chmod +x run-weather.sh
+./run-weather.sh --save-data
+```
+
+### Method 2: Direct Container Commands
+
+**With Podman:**
+```bash
+podman run -it --rm ghcr.io/redsskull/weather-intelligence-system
+
+# With persistent data storage
+podman run -it --rm -v weather-data:/app/data ghcr.io/redsskull/weather-intelligence-system
+```
+
+**With Docker:**
+```bash
+docker run -it --rm ghcr.io/redsskull/weather-intelligence-system
+
+# With persistent data storage
+docker run -it --rm -v weather-data:/app/data ghcr.io/redsskull/weather-intelligence-system
+```
+
+### Container Benefits
+- ✅ **Works everywhere**: Linux, macOS, Windows, cloud servers, Raspberry Pi
+- ✅ **No dependencies**: No Python, Go, or build tools needed
+- ✅ **One command**: Just run and go
+- ✅ **Always consistent**: Same behavior on all systems
+- ✅ **Completely isolated**: No conflicts with your system
+
+---
+
+## 🖥️ System Installation (Advanced Users)
+
+**For developers who want to modify the code or prefer native installation.**
+
 **Prerequisites:** Before installing, ensure you have Python 3.x, Go, and Git installed on your system.
 
-The Weather Intelligence System can be installed using one of the following methods:
-
-### Quick Install (Recommended)
-
-You can install the Weather Intelligence System directly using curl, wget, or PowerShell:
+### Quick System Install
 
 **On Linux/macOS using curl:**
 ```bash
@@ -104,7 +154,7 @@ wget -qO- https://raw.githubusercontent.com/redsskull/weather-intelligence-syste
 iex (iwr https://raw.githubusercontent.com/redsskull/weather-intelligence-system/main/install.ps1 -UseBasicParsing)
 ```
 
-### Manual Installation
+### Manual System Installation
 
 1. Clone the repository:
 ```bash
@@ -131,7 +181,7 @@ cd go-components/pattern-engine && go build -o ../../pattern-engine && cd ../..
 python project.py
 ```
 
-## Safety Features
+### System Installation Safety Features
 
 Our installation script includes several safety measures to protect your system:
 
@@ -149,9 +199,9 @@ Our installation script includes several safety measures to protect your system:
 
 7. **Cleanup on Failure**: If the installation fails, temporary files are cleaned up automatically.
 
-## Prerequisites
+### System Installation Prerequisites
 
-**Before running the installation script, you must have the following tools installed on your system:**
+**Before running the system installation script, you must have the following tools installed on your system:**
 
 - **Python 3.x** (with pip)
 - **Go** (latest stable version)
@@ -164,7 +214,7 @@ The installation script will check for these prerequisites and exit with an erro
 - **On Windows:**
   - PowerShell 5.1 or later
 
-## What the Installation Does
+### What the System Installation Does
 
 **On Linux/macOS:**
 1. Creates the installation directory at `~/.weather-intel` containing all application files
@@ -180,7 +230,7 @@ The installation script will check for these prerequisites and exit with an erro
 4. Installs the `weather` command script to `$env:USERPROFILE\\.local\\bin`
 5. Automatically adds the installation directory to your user PATH environment variable
 
-## Post-Installation
+### System Installation Post-Installation
 
 **On Linux/macOS:**
 After installation, you may need to restart your terminal or run the appropriate source command for your shell to update your PATH:
@@ -190,7 +240,7 @@ After installation, you may need to restart your terminal or run the appropriate
   - On macOS, it's often `.zprofile` that exports PATH variables
 - Or simply restart your terminal
 
-## Installed Files
+### Installed Files
 
 The complete Weather Intelligence System is installed in a dedicated directory:
 - **On Linux/macOS:** `~/.weather-intel`
@@ -212,7 +262,7 @@ Then you can run:
 weather
 ```
 
-## Uninstall
+### System Installation Uninstall
 
 **On Linux/macOS:**
 You can uninstall using the uninstall command:
@@ -233,6 +283,8 @@ Or manually remove:
 - The installation directory: `$env:USERPROFILE\\.weather-intel`
 - The installed scripts: `$env:USERPROFILE\\.local\\bin\\weather.ps1` and `$env:USERPROFILE\\.local\\bin\\weather-uninstall.ps1`
 - The PATH entry from your user environment variables
+
+---
 
 ## Key Data Structures
 

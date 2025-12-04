@@ -43,16 +43,41 @@ def call_go_collector(locations):
         display_error_help("file_write_error", f"Could not write locations: {e}")
         return False
 
-    # First, try to run Go directly for development (go run)
+    # First, try to use compiled binary (preferred for containers/production)
+    try:
+        # Determine the correct binary name based on the OS
+        system = platform.system().lower()
+        if system == "windows":
+            binary_path = "./data-collector.exe"
+        else:
+            binary_path = "./data-collector"  # Linux/macOS
+
+        # Check if binary exists
+        binary_name = binary_path.lstrip("./")
+        if os.path.exists(binary_name):
+            result = subprocess.run(
+                [binary_path], capture_output=True, text=True, timeout=30
+            )
+
+            if result.returncode == 0:
+                return True
+
+    except subprocess.TimeoutExpired:
+        display_error_help("subprocess_timeout", "Go collector took too long")
+        return False
+    except Exception as e:
+        print(f"Binary execution failed: {e}")
+        pass
+
+    # Fallback: try to run Go directly for development (go run)
     try:
         go_dir = "go-components/data-collector"
         # Check if the go directory and main.go exist
         if not os.path.exists(os.path.join(go_dir, "main.go")):
-            raise FileNotFoundError("main.go not found in go-components/data-collector")
+            display_error_help("go_source_missing", "Go binary not found and source not available")
+            return False
 
         # When running go run, we need to run from the go directory
-        # But we also need to make sure the input file is accessible
-        # Let's create a symbolic link or copy the input file to the expected location
         expected_input_dir = os.path.join(go_dir, "data", "integration")
         os.makedirs(expected_input_dir, exist_ok=True)
         expected_input_file = os.path.join(expected_input_dir, "input_locations.json")
@@ -75,57 +100,15 @@ def call_go_collector(locations):
 
         if result.returncode == 0:
             return True
-        # If go run fails, continue to try compiled binary
+        else:
+            display_error_help("go_collector_failed", f"Go collector failed: {result.stderr}")
+            return False
+
     except FileNotFoundError as e:
-        # go command not found or main.go not found, continue to try compiled binary
-        print(f"FileNotFoundError during go run: {e}")
-        pass
+        display_error_help("go_command_missing", f"Go command not available: {e}")
+        return False
     except subprocess.TimeoutExpired:
         display_error_help("subprocess_timeout", "Go collector took too long")
-        return False
-    except Exception as e:
-        # Any other error with go run, continue to try compiled binary
-        # But let's log the error for debugging
-        print(f"Exception during go run: {e}")
-        pass
-
-    # Execute Go data collector using compiled binary
-    try:
-        # Determine the correct binary name based on the OS
-        system = platform.system().lower()
-        if system == "windows":
-            binary_path = "./data-collector.exe"
-        else:
-            binary_path = "./data-collector"  # Linux/macOS
-
-        # Use compiled binary directly (check will be part of subprocess call)
-        result = subprocess.run(
-            [binary_path], capture_output=True, text=True, timeout=30
-        )
-
-        if result.returncode == 0:
-            return True
-        else:
-            # Try without the leading
-            if system == "windows":
-                fallback_path = "data-collector.exe"
-            else:
-                fallback_path = "data-collector"
-
-            result = subprocess.run(
-                [fallback_path], capture_output=True, text=True, timeout=30
-            )
-
-            if result.returncode == 0:
-                return True
-            else:
-                return False
-
-    except subprocess.TimeoutExpired:
-        display_error_help("subprocess_timeout", "Go collector took too long")
-        return False
-    except FileNotFoundError:
-        display_error_help("go_binary_not_found", "Go binary not found and 'go' command not available")
         return False
     except Exception as e:
         display_error_help("subprocess_error", str(e))

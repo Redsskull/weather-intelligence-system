@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  weather-intelligence:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather-intelligence-system
+
+    # Interactive terminal support
+    stdin_open: true
+    tty: true
+
+    # Mount volumes for persistent data
+    volumes:
+      - weather-data:/home/app/weather-intelligence-system/data
+      - ./data:/home/app/weather-intelligence-system/data:rw
+
+    # Environment variables (add your API keys here if needed)
+    environment:
+      - PYTHONUNBUFFERED=1
+      - WEATHER_DATA_PATH=/home/app/weather-intelligence-system/data
+
+    # Optional: If you need to expose ports later
+    # ports:
+    #   - "8080:8080"
+
+# Named volume for persistent weather data
+volumes:
+  weather-data:
+    driver: local
